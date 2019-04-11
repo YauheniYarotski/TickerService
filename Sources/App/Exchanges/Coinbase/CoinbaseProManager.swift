@@ -8,7 +8,7 @@
 import Foundation
 
 
-class CoinbaseProManager: BaseExchangeManager {
+class CoinbaseProManager {
   
   override init() {
     super.init()
