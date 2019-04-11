@@ -20,9 +20,8 @@ class OperationManager {
     
     Jobs.add(interval: .seconds(1)) {
 //      print("See you every 5 days.")
-      
-      let granulatedExchanges = agregator.getTickers(for: 10)
-      self.sessionManager.update(granulatedExchanges)
+      let exchnages = ExchangeTickersWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: agregator.getTickers(for: 10))
+      self.sessionManager.update(exchnages)
     }
     
   

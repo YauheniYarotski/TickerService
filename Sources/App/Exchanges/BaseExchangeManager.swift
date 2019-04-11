@@ -21,9 +21,9 @@ class BaseExchangeManager<T:Content> {
   }
   var bookDidUpdate: ((_ book: [String:[Double:Double]])->())?
   
-  func startCollectData() {
-    api?.start(stream: stream)
-  }
+//  func startCollectData() {
+//    wsApi?.start(stream: stream)
+//  }
   
   init(stream: Stream) {
     self.stream = stream

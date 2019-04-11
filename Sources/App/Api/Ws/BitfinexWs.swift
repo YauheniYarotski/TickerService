@@ -10,6 +10,8 @@ import Vapor
 import WebSocket
 import Foundation
 
+
+
 class BitfinexWs: Startable {
   
   var chains: [Int: String] = [:]

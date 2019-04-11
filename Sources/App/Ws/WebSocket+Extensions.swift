@@ -40,7 +40,7 @@ extension WebSocket {
     send(text: jsonText)
   }
   
-  func send<T: Content>(_ data: [T]) {
+  func send<T: Content>(_ data: T) {
     let encoder = JSONEncoder()
     guard let jsonData = try? encoder.encode(data) else { return }
     guard let jsonText = String(data: jsonData, encoding: .utf8) else { return }

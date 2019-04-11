@@ -63,7 +63,7 @@ final class TrackingSessionManager {
 //    listeners.forEach { ws in ws.send(location) }
 //  }
   
-  func update<T: Content>(_ data: [T]) {
+  func update<T: Content>(_ data: T) {
 //    guard let listeners = booksSessions[session] else { return }
     booksSessions.allElements.forEach { ws in ws.send(data) }
   }

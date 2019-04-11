@@ -1,0 +1,51 @@
+//
+//  BitstampRest.swift
+//  App
+//
+//  Created by Yauheni Yarotski on 4/9/19.
+//
+
+import Foundation
+import Vapor
+
+struct RestRequest {
+  let path: String?
+  let queryParameters: [String: String]?
+  let hostName: String
+  let httpMethod: HTTPMethod = .GET
+}
+
+class GenericRest {
+  
+  func sendRequest<T: Content>(request: RestRequest, completion: ((_ response: T)->())?, errorHandler:((_ error: Error)->())?) {
+    
+    var urlComponents = URLComponents()
+    urlComponents.path = request.path ?? URL.root.absoluteString
+    for queryParameter in request.queryParameters ?? [:] {
+      let queryItem = URLQueryItem(name: queryParameter.key, value: queryParameter.value)
+      urlComponents.queryItems?.append(queryItem)
+    }
+
+    //"api.binance.com"
+    
+    let httpReq = HTTPRequest(method: request.httpMethod, url: urlComponents.url!.absoluteString)
+    
+    let _ = HTTPClient.connect(scheme: .https, hostname: request.hostName, on: wsClientWorker).do { client in
+      let _ = client.send(httpReq).do({ httpResponse in
+        if let data = httpResponse.body.data, let response = try? JSONDecoder().decode(T.self, from: data) {
+          completion?(response)
+        } else {
+          print("error parsing json:", httpResponse.body)
+        }
+      }).catch({ (error) in
+        print("err:",error)
+      })
+      }.catch { (error) in
+        print("err:",error)
+    }
+    
+    
+    
+  }
+}
+

@@ -14,6 +14,10 @@ struct BookForPair: Content {
   let totalBids: Double
 }
 
+struct ExchangeTickersWithTimeStamp: Content {
+  let timeStamp: UInt
+  let exchanges: [ExchangeTickers]
+}
 
 struct ExchangeTickers: Content {
   let exchangeName: ExchangeName

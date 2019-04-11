@@ -9,12 +9,9 @@ import Foundation
 import Vapor
 import WebSocket
 
-class GenericWs<T:Content> {
+class GenericWs{
   
-  
-  var response: ((_ response: T)->())?
-  
-  func start(stream: Stream) {
+  func start<T:Content> (stream: Stream, completion: ((_ response: T)->())?) {
     
     guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: stream.hostname,port: stream.port, path: stream.path, on: wsClientWorker).wait() else {
       print("Ws \(stream.hostname) is nil")
@@ -24,7 +21,7 @@ class GenericWs<T:Content> {
     ws.onText { ws, text in
       //      print(text)
       if let jsonData = text.data(using: .utf8), let response: T = try? JSONDecoder().decode(T.self, from: jsonData) {
-        self.response?(response)
+        completion?(response)
       } else {
         print("Error with parsing \(T.self) ws response:", text)
         return
