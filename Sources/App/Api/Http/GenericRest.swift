@@ -27,10 +27,10 @@ struct RestRequest {
 
 class GenericRest {
   
-  func sendRequest<T: Content>(request: RestRequest, completion: ((_ response: T)->())?, errorHandler:((_ error: Error)->())?) {
+  static func sendRequest<T: Content>(request: RestRequest, completion: ((_ response: T)->())?, errorHandler:((_ error: Error)->())?) {
     
     var urlComponents = URLComponents()
-    urlComponents.path = request.path ?? URL.root.absoluteString
+    urlComponents.path = request.path
     for queryParameter in request.queryParameters ?? [:] {
       let queryItem = URLQueryItem(name: queryParameter.key, value: queryParameter.value)
       urlComponents.queryItems?.append(queryItem)

@@ -11,7 +11,7 @@ import WebSocket
 
 class GenericWs{
   
-  func start<T:Content> (request: RestRequest, completion: ((_ response: T)->())?) {
+  static func start<T:Content> (request: RestRequest, completion: ((_ response: T)->())?) {
     
     guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: request.hostName, port: request.port, path: request.path, on: wsClientWorker).wait() else {
       print("Ws \(request.hostName) is nil")

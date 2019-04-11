@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import WebSocket
 
-class CoinbaseProWs: Startable {
+class CoinbaseProWs {
   
   public enum ProductId: String, CaseIterable {
     case BTCUSD = "BTC-USD"
@@ -64,15 +64,14 @@ class CoinbaseProWs: Startable {
   }
   
   
-  var bookSnapshotResponse: ((_ bookSnapshotResponse: CoinbaseProBookSnapshot)->())?
-  var bookChangesResponse: ((_ bookChangesResponse: CoinbaseProBookChanges)->())?
+  var tickerResponse: ((_ tickerResponse: CoinbaseProTickerResponse)->())?
   var infoResponse: ((_ coinbaseProInfoResponse: CoinbaseProInfoResponse)->())?
   
   func start() {
     
-    let request = CoinbaseProRequest(type: MessageType.subscribe.rawValue, channels:  [Channel.level2.rawValue], product_ids: [ProductId.BTCUSD.rawValue])
+    let request = CoinbaseProRequest(type: MessageType.subscribe.rawValue, channels:  [Channel.heartbeat.rawValue], product_ids: [ProductId.BTCUSD.rawValue])
     
-    guard let encodedData = try? JSONEncoder().encode(request), let jsonString = String(bytes: encodedData, encoding: .utf8), let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", maxFrameSize: 1 << 19, on: wsClientWorker).wait()
+    guard let encodedData = try? JSONEncoder().encode(request), let jsonString = String(bytes: encodedData, encoding: .utf8), let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", on: wsClientWorker).wait()
       else {
         print("CoinbaseProWS is nil")
         return
@@ -89,15 +88,13 @@ class CoinbaseProWs: Startable {
     }
     
     ws.onText { ws, text in
-      //            print(text)
+                  print(text)
       guard  let jsonData = text.data(using: .utf8) else {
         print("Error with parsing coinbasepro ws response")
         return
       }
-      if let coinbaseProBookChanges = try? JSONDecoder().decode(CoinbaseProBookChanges.self, from: jsonData) {
-        self.bookChangesResponse?(coinbaseProBookChanges)
-      } else if let coinbaseProBookSnapshot = try? JSONDecoder().decode(CoinbaseProBookSnapshot.self, from: jsonData)  {
-        self.bookSnapshotResponse?(coinbaseProBookSnapshot)
+      if let coinbaseProTickerResponse = try? JSONDecoder().decode(CoinbaseProTickerResponse.self, from: jsonData) {
+        self.tickerResponse?(coinbaseProTickerResponse)
       } else if let coinbaseProInfoResponse = try? JSONDecoder().decode(CoinbaseProInfoResponse.self, from: jsonData)  {
         self.infoResponse?(coinbaseProInfoResponse)
       } else {
@@ -159,3 +156,20 @@ struct CoinbaseProBookChanges: Content {
   let changes: [[String]]
 }
 
+
+struct CoinbaseProTickerResponse: Content {
+  let type: String
+  let sequence: Int
+  let product_id: String
+  let price: Double
+  let time: String
+  
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    type = try container.decode(String.self, forKey: .type)
+    sequence = try container.decode(Int.self, forKey: .sequence)
+    product_id = try container.decode(String.self, forKey: .product_id)
+    price = Double(try container.decode(String.self, forKey: .price))!
+    time = try container.decode(String.self, forKey: .time)
+  }
+}
