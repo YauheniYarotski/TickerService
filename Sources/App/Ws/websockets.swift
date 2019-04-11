@@ -14,25 +14,14 @@ public func sockets(_ websockets: NIOWebSocketServer) {
     }
   }
   
-  // Listener
-  
-//  websockets.get("listen", TrackingSession.parameter) { ws, req in
-//    // 2
-//    print("connected to WS:", ws, req)
-//    let session = try req.parameters.next(TrackingSession.self)
-//    // 3
-//    guard sessionManager.sessions[session] != nil else {
-//      print("no sessions for session:", session)
-//      ws.close()
-//      return
-//    }
-//    // 4
-//    sessionManager.add(listener: ws, to: session)
-//  }
-  
-  websockets.get("books") { ws, req in
-    // 2
-    print("client connected to WS")
-    operationManager.sessionManager.add(listener: ws)
+  websockets.get("tickers", Int.parameter) { ws, req in
+    if let interval = try? req.parameters.next(Int.self) {
+      print("client connected to WS with interval:", interval)
+      operationManager.updateWsUpdateInterval(newInterval: interval)
+      operationManager.sessionManager.add(listener: ws)
+    } else {
+      print("Can't connect ws")
+    }
   }
+  
 }
