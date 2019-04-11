@@ -537,7 +537,7 @@ enum BinanceCoinPair: String {
 
 extension BinanceCoin: CaseIterable {}
 
-enum BinanceCoin: String {
+enum BinanceCoin: String, Content {
   case ada = "ADA"
   case adx = "ADX"
   case ae = "AE"

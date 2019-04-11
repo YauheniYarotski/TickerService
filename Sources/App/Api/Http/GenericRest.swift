@@ -9,10 +9,20 @@ import Foundation
 import Vapor
 
 struct RestRequest {
-  let path: String?
+  let path: String
   let queryParameters: [String: String]?
   let hostName: String
-  let httpMethod: HTTPMethod = .GET
+  let httpMethod: HTTPMethod
+  let port: Int?
+  
+  init(hostName: String, path: String, queryParameters:[String: String]? = nil, httpMethod: HTTPMethod = .GET, port: Int? = nil) {
+    self.hostName = hostName
+    self.path = path
+    self.queryParameters = queryParameters
+    self.httpMethod = httpMethod
+    self.port = port
+  }
+  
 }
 
 class GenericRest {

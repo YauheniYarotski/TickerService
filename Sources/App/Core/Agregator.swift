@@ -26,7 +26,7 @@ class Agregator {
       
       for pair in exchange.value {
         if let ticker = pair.value.filter({$0.tradeTime > now - lastSeconds}).last {
-          let wsTicker = WsTicker.init(pair: pair.key, price: ticker.price, tradeTime: ticker.tradeTime)
+          let wsTicker = WsTicker.init(pair: pair.key.symbol, price: ticker.price, tradeTime: ticker.tradeTime)
           tikers.append(wsTicker)
         }
       }

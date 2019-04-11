@@ -24,6 +24,11 @@ import Vapor
 //  }
 
 
+struct BinanceStreamTikerResponse: Content {
+  let stream: String
+  let data: BinanceTikerResponse
+}
+
 struct BinanceTikerResponse: Content {
   
   let eventType: String

@@ -25,7 +25,7 @@ class ExchangesManager {
 //  let bitstampManager = BitstampManager()
 //  let coinbaseProManager = CoinbaseProManager()
   
-  var exchangesTickers = [ExchangeName:[String:[Ticker]]]() //[exhange:[pair:ticker]]
+  var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]() //[exhange:[pair:ticker]]
   
   init() {
 //    binanceManager.bookDidUpdate = {book in
@@ -58,7 +58,7 @@ class ExchangesManager {
 //    coinbaseProManager.startCollectData()
   }
   
-  func updateTicker(exchangeName: ExchangeName, tickers: [String:[Ticker]]) {
+  func updateTicker(exchangeName: ExchangeName, tickers: [CoinPair:[Ticker]]) {
     exchangesTickers[exchangeName] = tickers
   }
 }

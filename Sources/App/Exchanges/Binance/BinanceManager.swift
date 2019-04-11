@@ -12,14 +12,13 @@ import Vapor
 class BinanceManager {
   
   let wsApi = GenericWs()
-  let stream: Stream = Stream.init(hostname: "stream.binance.com", port: 9443, path:"/ws/btcusdt@trade", streamType: .ticker)
   let restApi = GenericRest()
-  var tickers: [String:[Ticker]] = [:] { //[Pair:[Time:Ticker]]
+  var tickers: [CoinPair:[Ticker]] = [:] { //[Pair:[Time:Ticker]]
     didSet {
       tickerDidUpdate?(tickers)
     }
   }
-  var tickerDidUpdate: ((_ tickers: [String:[Ticker]])->())?
+  var tickerDidUpdate: ((_ tickers: [CoinPair:[Ticker]])->())?
   
   var infoReponse: BinanceInfoResponse?
   weak var job: Job?
@@ -43,22 +42,25 @@ class BinanceManager {
   
   func startCollectData() {
     
-    job = Jobs.delay(by: .seconds(1), interval: .seconds(10)) {
-      if let _ = self.infoReponse {
-        self.startWs()
-        self.job?.stop()
-      } else {
+    job = Jobs.delay(by: .seconds(2), interval: .seconds(5)) {
+      if self.infoReponse == nil {
         self.getInfo()
       }
     }
     
+    Jobs.add(interval: .seconds(5)) {
+      if self.job != nil, let _ = self.infoReponse {
+        self.job?.stop()
+        self.startWs()
+      }
+    }
     
     
     
   }
   
   private func getInfo() {
-    let infoRequest = RestRequest.init(path: "/api/v1/exchangeInfo", queryParameters: nil, hostName: "api.binance.com")
+    let infoRequest = RestRequest.init(hostName: "api.binance.com", path: "/api/v1/exchangeInfo")
     
     restApi.sendRequest(request: infoRequest, completion: { (response: BinanceInfoResponse) in
       self.infoReponse = response
@@ -80,9 +82,19 @@ class BinanceManager {
 }
 
 private func startWs() {
-  wsApi.start(stream: stream) { (response: BinanceTikerResponse) in
-    let ticker = Ticker(tradeTime: response.tradeTime, symbol: response.symbol, price: response.price, quantity: response.quantity)
+  // /stream?streams=<streamName1>/<streamName2>/<streamName3>
+  let path =  "/stream?streams=btcusdt@trade/ethusdt@trade/xrpusdt@trade"
+  let request = RestRequest.init(hostName: "stream.binance.com", path: path, port: 9443)
+  
+  wsApi.start(request: request) { (response: BinanceStreamTikerResponse) in
+      let symbol = response.stream.replacingOccurrences(of: "@trade", with: "").uppercased()
+    if let bianceCoinPiar = BinanceCoinPair(rawValue: symbol), let firstAsset = bianceCoinPiar.firstAsset, let secondAsset = bianceCoinPiar.secondAsset  {
+      let coinPair = CoinPair.init(firstAsset: firstAsset, secondAsset: secondAsset)
+      let ticker = Ticker(tradeTime: response.data.tradeTime, pair: coinPair, price: response.data.price, quantity: response.data.quantity)
     self.updateTickers(ticker: ticker)
+    } else {
+      print("error pasing binance symbol:",response.stream)
+    }
   }
 }
 //    Jobs.delay(by: .seconds(5), interval: .seconds(30)) {
@@ -92,7 +104,7 @@ private func startWs() {
 
 func updateTickers(ticker: Ticker) {
   //TODO: optimeze
-  var tickersForPair = tickers[ticker.symbol] ?? []
+  var tickersForPair = tickers[ticker.pair] ?? []
   
   
   //TODO: probably removes rundom
@@ -101,7 +113,7 @@ func updateTickers(ticker: Ticker) {
   }
   
   tickersForPair.append(ticker)
-  tickers[ticker.symbol] = tickersForPair
+  tickers[ticker.pair] = tickersForPair
 }
 
 //  func updateBook(asks: [[Double]], bids: [[Double]], pair: String, deleteOldData: Bool = false) {
@@ -145,7 +157,7 @@ func updateTickers(ticker: Ticker) {
 
 struct Ticker: Content {
   let tradeTime: Int
-  let symbol: String
+  let pair: CoinPair
   let price: Double
   let quantity: Double
 }
