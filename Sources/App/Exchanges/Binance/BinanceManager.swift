@@ -9,14 +9,7 @@ import Foundation
 import Jobs
 import Vapor
 
-class BinanceManager {
-  
-  var tickers: [CoinPair:[Ticker]] = [:] { //[Pair:[Time:Ticker]]
-    didSet {
-      tickerDidUpdate?(tickers)
-    }
-  }
-  var tickerDidUpdate: ((_ tickers: [CoinPair:[Ticker]])->())?
+class BinanceManager: BaseTikerManager {
   
   var infoReponse: BinanceInfoResponse?
   
@@ -78,22 +71,6 @@ class BinanceManager {
     }
   }
   
-  
-  
-  func updateTickers(ticker: Ticker) {
-    //TODO: optimeze
-    var tickersForPair = tickers[ticker.pair] ?? []
-    
-    
-    if tickersForPair.count > 1200 {
-      tickersForPair = Array(tickersForPair.prefix(1000))
-    }
-    
-    tickersForPair.append(ticker)
-    tickers[ticker.pair] = tickersForPair
-  }
-  
-  
 }
 
 struct Ticker: Content {
@@ -116,3 +93,32 @@ struct BinanceSymbolResponse: Content  {
   let baseAsset: String
   let quoteAsset: String
 }
+
+
+
+
+class BaseTikerManager {
+  
+  var tickers: [CoinPair:[Ticker]] = [:] { //[Pair:[Time:Ticker]]
+    didSet {
+      tickerDidUpdate?(tickers)
+    }
+  }
+  var tickerDidUpdate: ((_ tickers: [CoinPair:[Ticker]])->())?
+  
+  func updateTickers(ticker: Ticker) {
+    //TODO: optimeze
+    var tickersForPair = tickers[ticker.pair] ?? []
+    
+    
+    if tickersForPair.count > 1200 {
+      tickersForPair = Array(tickersForPair.prefix(1000))
+    }
+    
+    tickersForPair.append(ticker)
+    tickers[ticker.pair] = tickersForPair
+  }
+  
+  
+}
+

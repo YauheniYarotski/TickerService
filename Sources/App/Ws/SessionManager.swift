@@ -65,10 +65,10 @@ final class TrackingSessionManager {
   
   func update<T: Content>(_ data: T) {
 //    guard let listeners = booksSessions[session] else { return }
-    booksSessions.allElements.forEach { ws in ws.send(data) }
+    booksSessions.allElements.forEach { ws in ws.sendConten(data) }
   }
   
-  func close(_ session: TrackingSession) {
+  func close() {
 //    guard let listeners = sessions[session] else { return }
     booksSessions.allElements.forEach { ws in
       ws.close()

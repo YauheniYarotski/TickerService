@@ -22,7 +22,7 @@ class ExchangesManager {
   
 //  let bitfinexManager = BitfinexManager()
   let binanceManager = BinanceManager()
-//  let bitstampManager = BitstampManager()
+  let bitstampManager = BitstampManager()
   let coinbaseProManager = CoinbaseProManager()
   
   var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]() //[exhange:[pair:ticker]]
@@ -32,18 +32,22 @@ class ExchangesManager {
 //      self.updateBook(exchangeName: "Binance", book: book)
 //    }
     
-//    binanceManager.tickerDidUpdate = { tickers in
-//      self.updateTicker(exchangeName: .binance, tickers: tickers)
-//    }
+    binanceManager.tickerDidUpdate = { tickers in
+      self.updateTicker(exchangeName: .binance, tickers: tickers)
+    }
+    
+    coinbaseProManager.tickerDidUpdate = { tickers in
+            self.updateTicker(exchangeName: .coinbasePro, tickers: tickers)
+          }
     
     
 //    bitfinexManager.bookDidUpdate = {bitfinexBook in
 //      self.updateBook(exchangeName: "Bitfinex", book: bitfinexBook)
 //    }
 //
-//    bitstampManager.bookDidUpdate = {book in
-//      self.updateBook(exchangeName: "Bitstamp", book: book)
-//    }
+    bitstampManager.tickerDidUpdate = {tickers in
+      self.updateTicker(exchangeName: .bitstamp, tickers: tickers)
+    }
 //
 //    coinbaseProManager.bookDidUpdate = {book in
 //      self.updateBook(exchangeName: "CoinbasePro", book: book)
@@ -51,10 +55,10 @@ class ExchangesManager {
   }
   
   func startCollectData() {
-//    binanceManager.startCollectData()
+    binanceManager.startCollectData()
 
 //    bitfinexManager.startCollectData()
-//    bitstampManager.startCollectData()
+    bitstampManager.startCollectData()
     coinbaseProManager.startCollectData()
   }
   

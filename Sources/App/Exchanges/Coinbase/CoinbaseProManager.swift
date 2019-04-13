@@ -8,16 +8,22 @@
 import Foundation
 
 
-class CoinbaseProManager {
+class CoinbaseProManager: BaseTikerManager {
   
-  var wsApi: CoinbaseProWs? = CoinbaseProWs()
+  let wsApi: CoinbaseProWs = CoinbaseProWs()
   
-   init() {
-    wsApi = CoinbaseProWs()
-//    wsApi.tickerResponse = {  response in
-//      print(response.price)
-////      self.updateBook(asks: response.asks, bids: response.bids, pair: response.product_id)
-//    }
+  override init() {
+    super.init()
+    wsApi.tickerResponse = { (response: CoinbaseProTickerResponse) in
+      let symbol = response.product_id.replacingOccurrences(of: "-", with: "")
+      if let bianceCoinPiar = BinanceCoinPair(rawValue: symbol), let firstAsset = bianceCoinPiar.firstAsset, let secondAsset = bianceCoinPiar.secondAsset  {
+        let coinPair = CoinPair.init(firstAsset: firstAsset, secondAsset: secondAsset)
+        let ticker = Ticker(tradeTime: response.time, pair: coinPair, price: response.price , quantity: -99)
+        self.updateTickers(ticker: ticker)
+      } else {
+        print("error pasing binance symbol:",response.product_id)
+      }
+    }
     
   }
   
@@ -32,7 +38,7 @@ class CoinbaseProManager {
 //    Jobs.add(interval: .seconds(5)) {
 //      if self.job != nil, let _ = self.infoReponse {
 //        self.job?.stop()
-        wsApi?.start()
+        wsApi.start()
 //      }
 //    }
     

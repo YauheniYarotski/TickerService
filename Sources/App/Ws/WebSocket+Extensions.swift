@@ -33,14 +33,14 @@ import Foundation
 extension WebSocket {
 
   
-  func send(_ exchangesBooks: [ExchangesBooks]) {
-    let encoder = JSONEncoder()
-    guard let data = try? encoder.encode(exchangesBooks) else { return }
-    guard let jsonText = String(data: data, encoding: .utf8) else { return }
-    send(text: jsonText)
-  }
+//  func send(_ exchangesBooks: [ExchangesBooks]) {
+//    let encoder = JSONEncoder()
+//    guard let data = try? encoder.encode(exchangesBooks) else { return }
+//    guard let jsonText = String(data: data, encoding: .utf8) else { return }
+//    send(text: jsonText)
+//  }
   
-  func send<T: Content>(_ data: T) {
+  func sendConten<T: Content>(_ data: T) {
     let encoder = JSONEncoder()
     guard let jsonData = try? encoder.encode(data) else { return }
     guard let jsonText = String(data: jsonData, encoding: .utf8) else { return }

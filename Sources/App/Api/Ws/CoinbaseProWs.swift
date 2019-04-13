@@ -69,7 +69,7 @@ class CoinbaseProWs {
   
   func start() {
     
-    let request = CoinbaseProRequest(type: MessageType.subscribe.rawValue, channels:  [Channel.heartbeat.rawValue], product_ids: [ProductId.BTCUSD.rawValue])
+    let request = CoinbaseProRequest(type: MessageType.subscribe.rawValue, channels:  [Channel.ticker.rawValue], product_ids: [ProductId.BTCUSD.rawValue, ProductId.LTCUSD.rawValue, ProductId.ETHUSD.rawValue])
     
     guard let encodedData = try? JSONEncoder().encode(request), let jsonString = String(bytes: encodedData, encoding: .utf8), let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", on: wsClientWorker).wait()
       else {
@@ -88,7 +88,7 @@ class CoinbaseProWs {
     }
     
     ws.onText { ws, text in
-                  print(text)
+//                  print(text)
       guard  let jsonData = text.data(using: .utf8) else {
         print("Error with parsing coinbasepro ws response")
         return
@@ -162,7 +162,7 @@ struct CoinbaseProTickerResponse: Content {
   let sequence: Int
   let product_id: String
   let price: Double
-  let time: String
+  let time: Int = Int(Date().timeIntervalSince1970)
   
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -170,6 +170,6 @@ struct CoinbaseProTickerResponse: Content {
     sequence = try container.decode(Int.self, forKey: .sequence)
     product_id = try container.decode(String.self, forKey: .product_id)
     price = Double(try container.decode(String.self, forKey: .price))!
-    time = try container.decode(String.self, forKey: .time)
+//    time = try container.decode(String.self, forKey: .time)
   }
 }
