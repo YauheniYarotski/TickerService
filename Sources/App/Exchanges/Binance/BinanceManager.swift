@@ -41,9 +41,7 @@ class BinanceManager: BaseTikerManager {
       
       //TODO: for tests
       for symbol in response.symbols {
-        guard let pair = BinanceCoinPair(rawValue: symbol.symbol),
-          let _ = pair.firstAsset,
-          let _ = pair.secondAsset else {
+        guard let _ = BinancePair(string: symbol.symbol) else {
             print("Waring!: not all binance asstets updated:",symbol)
             return
         }
@@ -61,8 +59,8 @@ class BinanceManager: BaseTikerManager {
     
     GenericWs.start(request: request) { (response: BinanceStreamTikerResponse) in
       let symbol = response.stream.replacingOccurrences(of: "@trade", with: "").uppercased()
-      if let bianceCoinPiar = BinanceCoinPair(rawValue: symbol), let firstAsset = bianceCoinPiar.firstAsset, let secondAsset = bianceCoinPiar.secondAsset  {
-        let coinPair = CoinPair.init(firstAsset: firstAsset, secondAsset: secondAsset)
+      if let pair = BinancePair(string: symbol) {
+        let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
         let ticker = Ticker(tradeTime: response.data.tradeTime, pair: coinPair, price: response.data.price, quantity: response.data.quantity)
         self.updateTickers(ticker: ticker)
       } else {

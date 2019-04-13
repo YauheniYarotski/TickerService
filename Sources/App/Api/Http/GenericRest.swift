@@ -35,7 +35,7 @@ class GenericRest {
       let queryItem = URLQueryItem(name: queryParameter.key, value: queryParameter.value)
       urlComponents.queryItems?.append(queryItem)
     }
-
+    
     //"api.binance.com"
     
     let httpReq = HTTPRequest(method: request.httpMethod, url: urlComponents.url!.absoluteString)
@@ -53,9 +53,74 @@ class GenericRest {
       }.catch { (error) in
         print("err:",error)
     }
-    
-    
-    
   }
+  
+  static func sendRequest(request: RestRequest, completion: ((_ response: [String:Any])->())?, errorHandler:((_ error: Error)->())?) {
+    
+    var urlComponents = URLComponents()
+    urlComponents.path = request.path
+    for queryParameter in request.queryParameters ?? [:] {
+      urlComponents.queryItems = []
+      let queryItem = URLQueryItem(name: queryParameter.key, value: queryParameter.value)
+      urlComponents.queryItems?.append(queryItem)
+    }
+    
+    //"api.binance.com"
+    
+    let httpReq = HTTPRequest(method: request.httpMethod, url: urlComponents.url!.absoluteString)
+    
+    let _ = HTTPClient.connect(scheme: .https, hostname: request.hostName, on: wsClientWorker).do { client in
+      let _ = client.send(httpReq).do({ httpResponse in
+        
+        if let data = httpResponse.body.data,
+          let parsedAny = try? JSONSerialization.jsonObject(with:
+            data, options: []),
+          let dcit = parsedAny as? [String:Any] {
+          completion?(dcit)
+        } else {
+          print("error parsing json:", httpResponse.body)
+        }
+      }).catch({ (error) in
+        print("err:",error)
+      })
+      }.catch { (error) in
+        print("err:",error)
+    }
+  }
+  
+  
+  static func sendRequestToGetArray(request: RestRequest, completion: ((_ response: [Any])->())?, errorHandler:((_ error: Error)->())?) {
+    
+    var urlComponents = URLComponents()
+    urlComponents.path = request.path
+    for queryParameter in request.queryParameters ?? [:] {
+      urlComponents.queryItems = []
+      let queryItem = URLQueryItem(name: queryParameter.key, value: queryParameter.value)
+      urlComponents.queryItems?.append(queryItem)
+    }
+    
+    //"api.binance.com"
+    
+    let httpReq = HTTPRequest(method: request.httpMethod, url: urlComponents.url!.absoluteString)
+    
+    let _ = HTTPClient.connect(scheme: .https, hostname: request.hostName, on: wsClientWorker).do { client in
+      let _ = client.send(httpReq).do({ httpResponse in
+        
+        if let data = httpResponse.body.data,
+          let parsedAny = try? JSONSerialization.jsonObject(with:
+            data, options: []),
+          let array = parsedAny as? [Any] {
+          completion?(array)
+        } else {
+          print("error parsing json:", httpResponse.body)
+        }
+      }).catch({ (error) in
+        print("err:",error)
+      })
+      }.catch { (error) in
+        print("err:",error)
+    }
+  }
+  
 }
 

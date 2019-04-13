@@ -24,6 +24,7 @@ class ExchangesManager {
   let binanceManager = BinanceManager()
   let bitstampManager = BitstampManager()
   let coinbaseProManager = CoinbaseProManager()
+  let poloniexManager = PoloniexManager()
   
   var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]() //[exhange:[pair:ticker]]
   
@@ -48,16 +49,15 @@ class ExchangesManager {
     bitstampManager.tickerDidUpdate = {tickers in
       self.updateTicker(exchangeName: .bitstamp, tickers: tickers)
     }
-//
-//    coinbaseProManager.bookDidUpdate = {book in
-//      self.updateBook(exchangeName: "CoinbasePro", book: book)
-//    }
+    poloniexManager.tickerDidUpdate = {tickers in
+      self.updateTicker(exchangeName: .polonex, tickers: tickers)
+    }
+
   }
   
   func startCollectData() {
     binanceManager.startCollectData()
-
-//    bitfinexManager.startCollectData()
+    poloniexManager.startCollectData()
     bitstampManager.startCollectData()
     coinbaseProManager.startCollectData()
   }

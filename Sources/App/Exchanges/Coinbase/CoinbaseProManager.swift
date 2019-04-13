@@ -15,13 +15,12 @@ class CoinbaseProManager: BaseTikerManager {
   override init() {
     super.init()
     wsApi.tickerResponse = { (response: CoinbaseProTickerResponse) in
-      let symbol = response.product_id.replacingOccurrences(of: "-", with: "")
-      if let bianceCoinPiar = BinanceCoinPair(rawValue: symbol), let firstAsset = bianceCoinPiar.firstAsset, let secondAsset = bianceCoinPiar.secondAsset  {
-        let coinPair = CoinPair.init(firstAsset: firstAsset, secondAsset: secondAsset)
+      if let pair = CoinbasePair.init(string: response.product_id)  {
+        let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
         let ticker = Ticker(tradeTime: response.time, pair: coinPair, price: response.price , quantity: -99)
         self.updateTickers(ticker: ticker)
       } else {
-        print("error pasing binance symbol:",response.product_id)
+        print("error pasing Coinbase symbol:",response.product_id)
       }
     }
     
