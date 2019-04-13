@@ -16,11 +16,24 @@ class BitstampManager: BaseTikerManager {
   var coins: Set<BitstampCoin>? //BTC
   
   func startCollectData() {
-    self.startWs()
+    
+    weak var job: Job? = Jobs.delay(by: .seconds(2), interval: .seconds(10)) {
+      if self.pairs == nil || self.coins == nil {
+        self.getPairsAndCoins()
+      }
+    }
+    //
+    Jobs.add(interval: .seconds(10)) {
+      if job != nil, let _ = self.pairs, let _ = self.coins {
+        job?.stop()
+        self.startWs()
+      }
+    }
+    
   }
   
   private func getPairsAndCoins() {
-    let request = RestRequest.init(hostName: "www.bitstamp.net", path: "/api/v2/trading-pairs-info")
+    let request = RestRequest.init(hostName: "www.bitstamp.net", path: "/api/v2/trading-pairs-info/")
     
     GenericRest.sendRequestToGetArray(request: request, completion: { (response) in
       var pairs = Set<BitstampPair>()
@@ -33,8 +46,7 @@ class BitstampManager: BaseTikerManager {
           coins.insert(pair.firstAsset)
           coins.insert(pair.secondAsset)
         } else {
-          print("Waring!: not all binance asstets updated:",draftArrayPair)
-          return
+          print("Waring!: not all bitstamp asstets updated:",draftArrayPair)
         }
       }
       self.pairs = pairs.count > 5 ? pairs : nil

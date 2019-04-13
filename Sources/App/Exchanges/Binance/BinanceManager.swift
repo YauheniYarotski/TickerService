@@ -41,9 +41,9 @@ class BinanceManager: BaseTikerManager {
       
       //TODO: for tests
       for symbol in response.symbols {
-        guard let _ = BinancePair(string: symbol.symbol) else {
+        if let _ = BinancePair(string: symbol.symbol) {
+        } else {
             print("Waring!: not all binance asstets updated:",symbol)
-            return
         }
       }
       

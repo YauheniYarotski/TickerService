@@ -28,7 +28,7 @@ class BinanceRest {
         if let data = response.body.data, let bookResponse = try? JSONDecoder().decode(BinanceBookRestResponse.self, from: data) {
           self.didGetFullBook?(bookResponse, pair)
         } else {
-          print("error parsing json:", response.body)
+          print("error parsing binance json:", response.body)
         }
       }).catch({ (error) in
         print("err:",error)

@@ -47,7 +47,6 @@ class PoloniexManager: BaseTikerManager {
           pairs[id] = pair
         } else {
           print("Waring!: not all binance asstets updated:",draftDictPair.key)
-          return
         }
       }
       self.pairs = pairs.count > 5 ? pairs : nil
@@ -68,7 +67,6 @@ class PoloniexManager: BaseTikerManager {
           coins[id] = coin
         } else {
           print("Waring!: not all poloniex asstets updated:",draftDictCoin.key)
-          return
         }
       }
       self.coins = coins.count > 5 ? coins : nil
@@ -82,7 +80,7 @@ class PoloniexManager: BaseTikerManager {
     wsApi.startListenTickers()
     wsApi.tickerResponse = { response in
       if let pair = self.pairs?[response.pairId]  {
-              let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
+              let coinPair = CoinPair.init(firstAsset: pair.secondAsset.rawValue, secondAsset: pair.firstAsset.rawValue)
         let ticker = Ticker(tradeTime: Int(Date().timeIntervalSince1970), pair: coinPair, price: response.price, quantity: -99)
               self.updateTickers(ticker: ticker)
             } else {

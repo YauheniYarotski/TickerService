@@ -78,7 +78,7 @@ class GenericRest {
           let dcit = parsedAny as? [String:Any] {
           completion?(dcit)
         } else {
-          print("error parsing json:", httpResponse.body)
+          print("error parsing dict json:", httpResponse.body)
         }
       }).catch({ (error) in
         print("err:",error)
@@ -105,14 +105,13 @@ class GenericRest {
     
     let _ = HTTPClient.connect(scheme: .https, hostname: request.hostName, on: wsClientWorker).do { client in
       let _ = client.send(httpReq).do({ httpResponse in
-        
         if let data = httpResponse.body.data,
           let parsedAny = try? JSONSerialization.jsonObject(with:
             data, options: []),
           let array = parsedAny as? [Any] {
           completion?(array)
         } else {
-          print("error parsing json:", httpResponse.body)
+          print("error parsing array json:", httpResponse.body)
         }
       }).catch({ (error) in
         print("err:",error)
