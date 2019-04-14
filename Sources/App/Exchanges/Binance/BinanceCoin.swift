@@ -29,6 +29,12 @@ struct BinancePair: Content {
   
 }
 
+extension BinancePair: Hashable {
+  var hashValue: Int {
+    return (self.firstAsset.rawValue+self.secondAsset.rawValue).hashValue
+  }
+}
+
 
 extension BinanceCoin: CaseIterable {}
 enum BinanceCoin: String, Content {

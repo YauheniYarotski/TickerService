@@ -20,11 +20,10 @@ class PoloniexManager: BaseTikerManager {
   } //1,BTC_ATOM
   var coins: [Int:PoloniexCoin]? //1:BTC
   var didGetPairs: ((_ pairs: [PoloniexPair])->())?
-  weak var job: Job?
   
   func startCollectData() {
     
-    job = Jobs.delay(by: .seconds(2), interval: .seconds(10)) {
+    weak var job = Jobs.delay(by: .seconds(2), interval: .seconds(10)) {
       if self.pairs == nil {
         self.getPairs()
       } else if self.coins == nil {
@@ -33,8 +32,8 @@ class PoloniexManager: BaseTikerManager {
     }
     //
     Jobs.add(interval: .seconds(5)) {
-      if self.job != nil, let _ = self.pairs, let _ = self.coins {
-        self.job?.stop()
+      if job != nil, let _ = self.pairs, let _ = self.coins {
+        job?.stop()
         self.startWs()
       }
     }

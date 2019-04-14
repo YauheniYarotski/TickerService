@@ -13,39 +13,50 @@ class BinanceManager: BaseTikerManager {
   
   var infoReponse: BinanceInfoResponse?
   
-  weak var job: Job?
+  var pairs: Set<BinancePair>? {
+    didSet {
+      if let pairs = pairs {
+        didGetPairs?(pairs)
+      }
+    }
+  } //BTC/ATOM
+  var coins: Set<BinanceCoin>? //BTC
+  var didGetPairs: ((_ pairs: Set<BinancePair>)->())?
   
   func startCollectData() {
     
-    job = Jobs.delay(by: .seconds(2), interval: .seconds(5)) {
-      if self.infoReponse == nil {
-        self.getInfo()
+     weak var job = Jobs.delay(by: .seconds(2), interval: .seconds(5)) {
+      if self.pairs == nil || self.coins == nil {
+        self.getPairAndCoins()
       }
     }
     
     Jobs.add(interval: .seconds(5)) {
-      if self.job != nil, let _ = self.infoReponse {
-        self.job?.stop()
+      if job != nil, let _ = self.pairs, let _ = self.coins {
+        job?.stop()
         self.startWs()
       }
     }
     
   }
   
-  private func getInfo() {
+  private func getPairAndCoins() {
     let infoRequest = RestRequest.init(hostName: "api.binance.com", path: "/api/v1/exchangeInfo")
-    
+    var pairs = Set<BinancePair>()
+    var coins = Set<BinanceCoin>()
     GenericRest.sendRequest(request: infoRequest, completion: { (response: BinanceInfoResponse) in
-      self.infoReponse = response
-      
-      
-      //TODO: for tests
-      for symbol in response.symbols {
-        if let _ = BinancePair(string: symbol.symbol) {
+      for symbolReponse in response.symbols {
+        if let pair = BinancePair(string: symbolReponse.symbol) {
+          pairs.insert(pair)
+          coins.insert(pair.firstAsset)
+          coins.insert(pair.secondAsset)
         } else {
-            print("Waring!: not all binance asstets updated:",symbol)
+          print("Waring!: not all binance asstets updated:",symbolReponse.symbol)
         }
       }
+      
+      self.pairs = pairs.count > 5 ? pairs : nil
+      self.coins = coins.count > 5 ? coins : nil
       
     }, errorHandler:  {  error in
       print("Gor error for request: \(infoRequest)",error)

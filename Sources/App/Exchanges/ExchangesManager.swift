@@ -38,6 +38,13 @@ class ExchangesManager {
       self.updateTicker(exchangeName: .binance, tickers: tickers)
     }
     
+    binanceManager.didGetPairs = { pairs in
+      let pairs = pairs.compactMap({ pair  in
+        return CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
+      }).sorted(by: {$0.symbol < $1.symbol})
+      self.updatePairs(exchangeName: .binance, pairs: pairs)
+    }
+    
     coinbaseProManager.tickerDidUpdate = { tickers in
             self.updateTicker(exchangeName: .coinbasePro, tickers: tickers)
           }
