@@ -11,7 +11,7 @@ import Vapor
 
 class BinanceManager: BaseTikerManager {
   
-  var infoReponse: BinanceInfoResponse?
+  let ws = BinanceWs()
   
   var pairs: Set<BinancePair>? {
     didSet {
@@ -23,19 +23,39 @@ class BinanceManager: BaseTikerManager {
   var coins: Set<BinanceCoin>? //BTC
   var didGetPairs: ((_ pairs: Set<BinancePair>)->())?
   
-  func startCollectData() {
-    
-     weak var job = Jobs.delay(by: .seconds(2), interval: .seconds(5)) {
-      if self.pairs == nil || self.coins == nil {
-        self.getPairAndCoins()
+  override init() {
+    super.init()
+    ws.tickersResponseHandler = { (response: BinanceStreamTikerResponse) in
+      let symbol = response.stream.replacingOccurrences(of: "@trade", with: "").uppercased()
+      if let pair = BinancePair(string: symbol) {
+        let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
+        let ticker = Ticker(tradeTime: response.data.tradeTime, pair: coinPair, price: response.data.price, quantity: response.data.quantity)
+        self.updateTickers(ticker: ticker)
+      } else {
+        print("error pasing binance symbol:",response.stream)
+      }
+    }
+  }
+  
+  func startListenTickers(pairs: [BinancePair]) {
+    weak var job: Job?
+    if self.pairs == nil || self.coins == nil {
+      job = Jobs.delay(by: .seconds(2), interval: .seconds(7)) {
+        if self.pairs == nil || self.coins == nil {
+          self.getPairAndCoins()
+        }
       }
     }
     
-    Jobs.add(interval: .seconds(5)) {
-      if job != nil, let _ = self.pairs, let _ = self.coins {
-        job?.stop()
-        self.startWs()
+    if job != nil {
+      Jobs.add(interval: .seconds(5)) {
+        if job != nil, let _ = self.pairs, let _ = self.coins {
+          job?.stop()
+          self.ws.startListenTickers(pairs: pairs)
+        }
       }
+    } else {
+      self.ws.startListenTickers(pairs: pairs)
     }
     
   }
@@ -63,23 +83,6 @@ class BinanceManager: BaseTikerManager {
     })
   }
   
-  private func startWs() {
-    // /stream?streams=<streamName1>/<streamName2>/<streamName3>
-    let path =  "/stream?streams=btcusdt@trade/ethusdt@trade/xrpusdt@trade"
-    let request = RestRequest.init(hostName: "stream.binance.com", path: path, port: 9443)
-    
-    GenericWs.start(request: request) { (response: BinanceStreamTikerResponse) in
-      let symbol = response.stream.replacingOccurrences(of: "@trade", with: "").uppercased()
-      if let pair = BinancePair(string: symbol) {
-        let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
-        let ticker = Ticker(tradeTime: response.data.tradeTime, pair: coinPair, price: response.data.price, quantity: response.data.quantity)
-        self.updateTickers(ticker: ticker)
-      } else {
-        print("error pasing binance symbol:",response.stream)
-      }
-    }
-  }
-  
 }
 
 struct Ticker: Content {
@@ -90,18 +93,6 @@ struct Ticker: Content {
 }
 
 
-struct BinanceInfoResponse: Content {
-  let timezone: String
-  let serverTime: UInt
-  let symbols: [BinanceSymbolResponse]
-}
-
-struct BinanceSymbolResponse: Content  {
-  let symbol: String
-  let status: String
-  let baseAsset: String
-  let quoteAsset: String
-}
 
 
 

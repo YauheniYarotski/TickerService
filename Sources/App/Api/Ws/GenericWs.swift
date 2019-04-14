@@ -13,12 +13,8 @@ class GenericWs{
   
   static func start<T:Content> (request: RestRequest, completion: ((_ response: T)->())?) {
     
-    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: request.hostName, port: request.port, path: request.path, on: wsClientWorker).wait() else {
-      print("Ws \(request.hostName) is nil")
-      return
-    }
     
-    ws.onText { ws, text in
+    let wsOnText: ((WebSocket, String) -> ()) = { (ws: WebSocket, text: String) in
       //      print(text)
       if let jsonData = text.data(using: .utf8), let response: T = try? JSONDecoder().decode(T.self, from: jsonData) {
         completion?(response)
@@ -29,7 +25,19 @@ class GenericWs{
       
     }
     
+    let wss = HTTPClient.webSocket(scheme: .wss, hostname: request.hostName, port: request.port, path: request.path, on: wsClientWorker).map(to: WebSocket.self) { (ws) in
+      ws.onText(wsOnText)
+      ws.onCloseCode({ code in
+        print("ws closed with code:",code)
+      })
+      ws.onError({ (ws, error) in
+        print("ws error with error:",error)
+      })
+      return ws
+    }
   }
+  
+  
   
 }
 

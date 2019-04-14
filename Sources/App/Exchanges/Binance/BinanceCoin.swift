@@ -16,6 +16,7 @@ struct BinancePair: Content {
   }
   
   init?(string: String) {
+    let string = string.uppercased()
     for coin1 in BinanceCoin.allCases where string.hasPrefix(coin1.rawValue) {
       let suffix = string.replacingOccurrences(of: coin1.rawValue, with: "")
       for coin2 in BinanceCoin.allCases where suffix == coin2.rawValue {

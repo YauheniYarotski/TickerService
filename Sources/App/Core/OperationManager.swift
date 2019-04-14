@@ -18,7 +18,8 @@ class OperationManager {
   func start(_ app: Application) {
     
     self.agregator = Agregator(exchangeManager: exchangeManager)
-    exchangeManager.startCollectData()
+    let coinPair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
+    exchangeManager.startCollectData(exchangesWithPairs: [.binance:[coinPair]])
     
     let defaultInetval = 3
     self.wsJob = Jobs.add(interval: .seconds(Double(defaultInetval))) {

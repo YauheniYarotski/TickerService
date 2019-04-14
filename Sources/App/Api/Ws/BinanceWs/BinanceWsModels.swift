@@ -136,3 +136,18 @@ struct BinanceBookResponse: Content {
     asks = try container.decode([[String]].self, forKey: .asks).compactMap({$0.compactMap({Double($0)})})
   }
 }
+
+struct BinanceInfoResponse: Content {
+  let timezone: String
+  let serverTime: UInt
+  let symbols: [BinanceSymbolResponse]
+}
+
+struct BinanceSymbolResponse: Content  {
+  let symbol: String
+  let status: String
+  let baseAsset: String
+  let quoteAsset: String
+}
+
+

@@ -20,19 +20,21 @@ enum ExchangeName: String, Content {
 
 class ExchangesManager {
   
-//  let bitfinexManager = BitfinexManager()
   let binanceManager = BinanceManager()
   let bitstampManager = BitstampManager()
   let coinbaseProManager = CoinbaseProManager()
   let poloniexManager = PoloniexManager()
   
-  var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]() //[exhange:[pair:ticker]]
-  var exchangesPairs = [ExchangeName:[CoinPair]]() //[exhange:[pair:ticker]]
+  var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]()
+  var exchangesPairs = [ExchangeName:[CoinPair]]()
+//  var exchangesPairsToListen = [ExchangeName:[CoinPair]]() {
+//    didSet {
+//      self.startCollectData(exchangesWithPairs: exchangesPairsToListen)
+//    }
+//  }
   
   init() {
-//    binanceManager.bookDidUpdate = {book in
-//      self.updateBook(exchangeName: "Binance", book: book)
-//    }
+
     
     binanceManager.tickerDidUpdate = { tickers in
       self.updateTicker(exchangeName: .binance, tickers: tickers)
@@ -56,10 +58,6 @@ class ExchangesManager {
       self.updatePairs(exchangeName: .coinbasePro, pairs: pairs)
     }
     
-//    bitfinexManager.bookDidUpdate = {bitfinexBook in
-//      self.updateBook(exchangeName: "Bitfinex", book: bitfinexBook)
-//    }
-//
     bitstampManager.tickerDidUpdate = {tickers in
       self.updateTicker(exchangeName: .bitstamp, tickers: tickers)
     }
@@ -84,11 +82,15 @@ class ExchangesManager {
 
   }
   
-  func startCollectData() {
-    binanceManager.startCollectData()
-    poloniexManager.startCollectData()
-    bitstampManager.startCollectData()
-    coinbaseProManager.startCollectData()
+  func startCollectData(exchangesWithPairs: [ExchangeName:[CoinPair]]) {
+    for exchangePair in exchangesWithPairs {
+      switch exchangePair.key {
+      case .binance:
+        let binancePairs = exchangePair.value.compactMap({BinancePair.init(string: ($0.firstAsset+$0.secondAsset))})
+        binanceManager.startListenTickers(pairs: binancePairs)
+      case .bitfinex, .bitstamp, .coinbasePro, .polonex: continue
+      }
+    }
   }
   
   func updateTicker(exchangeName: ExchangeName, tickers: [CoinPair:[Ticker]]) {
