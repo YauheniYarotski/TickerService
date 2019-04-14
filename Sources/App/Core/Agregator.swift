@@ -24,14 +24,15 @@ class Agregator {
       var tikers = [WsTicker]()
       
       for pair in exchange.value {
-        if let ticker = pair.value.filter({$0.tradeTime > since}).last {
+        if let ticker = pair.value.filter({$0.tradeTime >= since}).last {
           let wsTicker = WsTicker.init(pair: pair.key.symbol, price: ticker.price, tradeTime: ticker.tradeTime)
           tikers.append(wsTicker)
         }
       }
-      
-      let exchangesTickers = ExchangeTickers.init(exchangeName: exchange.key, tickers: tikers)
-      exchanges.append(exchangesTickers)
+      if tikers.count > 0 {
+        let exchangesTickers = ExchangeTickers.init(exchangeName: exchange.key, tickers: tikers)
+        exchanges.append(exchangesTickers)
+      }
       
     }
     return exchanges

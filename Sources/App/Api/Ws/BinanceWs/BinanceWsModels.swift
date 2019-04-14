@@ -68,7 +68,7 @@ struct BinanceTikerResponse: Content {
     quantity = Double(try container.decode(String.self, forKey: .quantity))!
     buyerOrderId = try container.decode(Int.self, forKey: .buyerOrderId)
     sellerOrderId = try container.decode(Int.self, forKey: .sellerOrderId)
-    tradeTime = try container.decode(Int.self, forKey: .tradeTime)
+    tradeTime = try container.decode(Int.self, forKey: .tradeTime)/1000
     iSBuyerMarketMaker = try container.decode(Bool.self, forKey: .iSBuyerMarketMaker)
     ignore = try container.decode(Bool.self, forKey: .ignore)
   }
