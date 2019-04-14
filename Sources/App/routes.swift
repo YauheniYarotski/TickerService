@@ -6,7 +6,8 @@ public func routes(_ router: Router) throws {
 
   router.get("status") { _ in "ok \(Date())" }
   
-  
+  let exchangesController = ExchangesController()
+  try router.register(collection: exchangesController)
   
   // MARK: Poster Routes
   

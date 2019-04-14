@@ -11,9 +11,15 @@ import Vapor
 
 class PoloniexManager: BaseTikerManager {
   let wsApi = PoloniexWs()
-  var pairs: [Int:PoloniexPair]? //1,BTC_ATOM
+  var pairs: [Int:PoloniexPair]? {
+    didSet {
+      if let pairs = pairs?.compactMap({$0.value}) {
+        didGetPairs?(pairs)
+      }
+    }
+  } //1,BTC_ATOM
   var coins: [Int:PoloniexCoin]? //1:BTC
-  
+  var didGetPairs: ((_ pairs: [PoloniexPair])->())?
   weak var job: Job?
   
   func startCollectData() {

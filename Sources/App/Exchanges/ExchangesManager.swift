@@ -27,6 +27,7 @@ class ExchangesManager {
   let poloniexManager = PoloniexManager()
   
   var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]() //[exhange:[pair:ticker]]
+  var exchangesPairs = [ExchangeName:[CoinPair]]() //[exhange:[pair:ticker]]
   
   init() {
 //    binanceManager.bookDidUpdate = {book in
@@ -41,6 +42,12 @@ class ExchangesManager {
             self.updateTicker(exchangeName: .coinbasePro, tickers: tickers)
           }
     
+    coinbaseProManager.didGetPairs = { pairs in
+      let pairs = pairs.compactMap({ pair  in
+        return CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
+      }).sorted(by: {$0.symbol < $1.symbol})
+      self.updatePairs(exchangeName: .coinbasePro, pairs: pairs)
+    }
     
 //    bitfinexManager.bookDidUpdate = {bitfinexBook in
 //      self.updateBook(exchangeName: "Bitfinex", book: bitfinexBook)
@@ -49,8 +56,23 @@ class ExchangesManager {
     bitstampManager.tickerDidUpdate = {tickers in
       self.updateTicker(exchangeName: .bitstamp, tickers: tickers)
     }
+    
+    bitstampManager.didGetPairs = { pairs in
+      let pairs = pairs.compactMap({ pair  in
+        return CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
+      }).sorted(by: {$0.symbol < $1.symbol})
+      self.updatePairs(exchangeName: .bitstamp, pairs: pairs)
+    }
+    
+    
     poloniexManager.tickerDidUpdate = {tickers in
       self.updateTicker(exchangeName: .polonex, tickers: tickers)
+    }
+    poloniexManager.didGetPairs = { poloniexPairs in
+      let pairs = poloniexPairs.compactMap({ polonoexPair  in
+        return CoinPair.init(firstAsset: polonoexPair.firstAsset.rawValue, secondAsset: polonoexPair.secondAsset.rawValue)
+      }).sorted(by: {$0.symbol < $1.symbol})
+      self.updatePairs(exchangeName: .polonex, pairs: pairs)
     }
 
   }
@@ -64,5 +86,8 @@ class ExchangesManager {
   
   func updateTicker(exchangeName: ExchangeName, tickers: [CoinPair:[Ticker]]) {
     exchangesTickers[exchangeName] = tickers
+  }
+  func updatePairs(exchangeName: ExchangeName, pairs: [CoinPair]) {
+    exchangesPairs[exchangeName] = pairs
   }
 }

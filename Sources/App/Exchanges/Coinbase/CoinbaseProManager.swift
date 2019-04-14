@@ -6,11 +6,21 @@
 //
 
 import Foundation
-
+import Jobs
 
 class CoinbaseProManager: BaseTikerManager {
   
   let wsApi: CoinbaseProWs = CoinbaseProWs()
+  
+  var pairs: Set<CoinbasePair>? {
+    didSet {
+      if let pairs = pairs {
+        didGetPairs?(pairs)
+      }
+    }
+  } //BTC/ATOM
+  var coins: Set<CoinbaseCoin>? //BTC
+  var didGetPairs: ((_ pairs: Set<CoinbasePair>)->())?
   
   override init() {
     super.init()
@@ -26,53 +36,49 @@ class CoinbaseProManager: BaseTikerManager {
     
   }
   
+  
   func startCollectData() {
     
-//    job = Jobs.delay(by: .seconds(2), interval: .seconds(5)) {
-//      if self.infoReponse == nil {
-//        self.getInfo()
-//      }
-//    }
-//
-//    Jobs.add(interval: .seconds(5)) {
-//      if self.job != nil, let _ = self.infoReponse {
-//        self.job?.stop()
-        wsApi.start()
-//      }
-//    }
+    weak var job: Job? = Jobs.delay(by: .seconds(2), interval: .seconds(10)) {
+      if self.pairs == nil || self.coins == nil {
+        self.getPairsAndCoins()
+      }
+    }
+    //
+    Jobs.add(interval: .seconds(10)) {
+      if job != nil, let _ = self.pairs, let _ = self.coins {
+        job?.stop()
+        self.wsApi.start()
+      }
+    }
     
   }
   
   
   
   
-//  func updateBook(asks: [[Double]], bids: [[Double]], pair: String) {
-//    var pairBook = book[pair] ?? [:]
-//    for bid in bids {
-//      let price = bid[0]
-//      let amount = bid[1]
-//      if amount > 0 {
-//        pairBook[price] = amount
-//      } else {
-//        pairBook[price] = nil
-//      }
-//    }
-//
-//    for ask in asks {
-//      let price = -ask[0]
-//      let amount = ask[1]
-//      if amount > 0 {
-//        pairBook[price] = amount
-//      } else {
-//        pairBook[price] = nil
-//      }
-//    }
-//
-//    book[pair] = pairBook
-//
-////    print("bids",pairBook.filter({$0.key > 0}).count)
-////    print("asks",pairBook.filter({$0.key < 0}).count)
-//  }
-  
+  private func getPairsAndCoins() {
+    let request = RestRequest.init(hostName: "api.pro.coinbase.com", path: "/products/")
+    
+    GenericRest.sendRequestToGetArray(request: request, completion: { (response) in
+      var pairs = Set<CoinbasePair>()
+      var coins = Set<CoinbaseCoin>()
+      for draftArrayPair in response {
+        if let dictPair = draftArrayPair as? [String: Any],
+          let symbol = dictPair["id"] as? String,
+          let pair = CoinbasePair(string: symbol) {
+          pairs.insert(pair)
+          coins.insert(pair.firstAsset)
+          coins.insert(pair.secondAsset)
+        } else {
+          print("Waring!: not all conbase asstets updated:",draftArrayPair)
+        }
+      }
+      self.pairs = pairs.count > 5 ? pairs : nil
+      self.coins = coins.count > 5 ? coins : nil
+    }, errorHandler:  {  error in
+      print("Gor error for request: \(request)",error)
+    })
+  }
 }
 

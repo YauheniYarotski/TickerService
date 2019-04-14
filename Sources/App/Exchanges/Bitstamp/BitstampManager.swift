@@ -12,8 +12,15 @@ import Vapor
 class BitstampManager: BaseTikerManager {
   
   let wsApi = BitstampWs()
-  var pairs: Set<BitstampPair>? //BTC/ATOM
+  var pairs: Set<BitstampPair>? {
+    didSet {
+      if let pairs = pairs {
+        didGetPairs?(pairs)
+      }
+    }
+  } //BTC/ATOM
   var coins: Set<BitstampCoin>? //BTC
+  var didGetPairs: ((_ pairs: Set<BitstampPair>)->())?
   
   func startCollectData() {
     

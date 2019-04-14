@@ -39,4 +39,14 @@ class OperationManager {
       self.sessionManager.update(exchnages)
     }
   }
+  
+  func getExchanges() -> ExchangePairsWithTimeStamp {
+    var exchanges = [ExchangePairs]()
+    let collection = exchangeManager.exchangesPairs
+    for exchange in collection {
+      let exchange = ExchangePairs.init(exchangeName: exchange.key, pairs: exchange.value.flatMap({$0.symbol}))
+      exchanges.append(exchange)
+    }
+    return ExchangePairsWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: exchanges)
+  }
 }
