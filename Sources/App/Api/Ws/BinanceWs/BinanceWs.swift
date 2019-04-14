@@ -38,7 +38,7 @@ class BinanceWs {
     
     let request = RestRequest.init(hostName: "stream.binance.com", path: path, port: 9443)
     
-    self.ws?.close()
+    self.ws?.close(code: WebSocketErrorCode.normalClosure)
     
     let _ = HTTPClient.webSocket(scheme: .wss, hostname: request.hostName, port: request.port, path: request.path, on: wsClientWorker).do { (ws) in
       self.ws = ws
@@ -47,7 +47,7 @@ class BinanceWs {
         print("ws closed with code:",code)
       })
       ws.onError({ (ws, error) in
-        print("ws error with error:",error)
+        print("Binance ws error with error:",error)
       })
     }
     

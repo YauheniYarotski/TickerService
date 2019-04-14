@@ -17,15 +17,14 @@ class Agregator {
     self.exchangeManager = exchangeManager
   }
   
-  func getTickers(for lastSeconds: Int) -> [ExchangeTickers] {
-    let now = Int(Date().timeIntervalSinceNow)
+  func getTickers(since: Int) -> [ExchangeTickers] {
     var exchanges = [ExchangeTickers]()
     
     for exchange in self.exchangeManager.exchangesTickers {
       var tikers = [WsTicker]()
       
       for pair in exchange.value {
-        if let ticker = pair.value.filter({$0.tradeTime > now - lastSeconds}).last {
+        if let ticker = pair.value.filter({$0.tradeTime > since}).last {
           let wsTicker = WsTicker.init(pair: pair.key.symbol, price: ticker.price, tradeTime: ticker.tradeTime)
           tikers.append(wsTicker)
         }

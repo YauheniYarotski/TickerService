@@ -6,6 +6,18 @@ let wsClientWorker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 public func sockets(_ websockets: NIOWebSocketServer) {
   // Status
   
+  let onTextHandler = { (ws: WebSocket, text: String) in
+    if let jsonData = text.data(using: .utf8), let exchangesToListen = try? JSONDecoder().decode(ExchangesToListen.self, from: jsonData) {
+      operationManager.updateExchangesToListen(exchanges: exchangesToListen)
+      ws.send("Did get")
+    } else {
+      let errorText = "Can't parse JSON to \(ExchangesToListen.self) from: \(text)"
+      print(errorText)
+      ws.send(errorText)
+      return
+    }
+  }
+  
   websockets.get("echo-test") { ws, req in
     print("ws connnected")
     ws.onText { ws, text in
@@ -16,6 +28,7 @@ public func sockets(_ websockets: NIOWebSocketServer) {
   
   websockets.get("tickers", Int.parameter) { ws, req in
     if let interval = try? req.parameters.next(Int.self) {
+      ws.onText(onTextHandler)
       print("client connected to WS with interval:", interval)
       operationManager.updateWsUpdateInterval(newInterval: interval)
       operationManager.sessionManager.add(listener: ws)
@@ -24,4 +37,18 @@ public func sockets(_ websockets: NIOWebSocketServer) {
     }
   }
   
+}
+
+struct ExchangesToListen: Content {
+  let interval: Int
+  let exchanges:[ExchangesWithPairs]
+}
+
+struct ExchangesWithPairs: Content {
+  let exchangeName: ExchangeName
+  let pairs: [String]
+  
+  var coinPairs: [CoinPair] {
+    return pairs.compactMap({CoinPair.init(string: $0)})
+  }
 }

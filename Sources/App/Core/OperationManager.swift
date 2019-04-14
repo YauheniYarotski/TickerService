@@ -18,7 +18,7 @@ class OperationManager {
   func start(_ app: Application) {
     
     self.agregator = Agregator(exchangeManager: exchangeManager)
-    let coinPair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
+    let coinPair = CoinPair(firstAsset: "ADA", secondAsset: "BTC")
     exchangeManager.startCollectData(exchangesWithPairs: [.binance:[coinPair]])
     
     let defaultInetval = 3
@@ -36,7 +36,7 @@ class OperationManager {
   
   func sendTickersToWs(_ forInterval: Int) {
     if let agregator = agregator {
-      let exchnages = ExchangeTickersWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: agregator.getTickers(for: forInterval))
+      let exchnages = ExchangeTickersWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: agregator.getTickers(since: Int(Date().timeIntervalSince1970) - forInterval))
       self.sessionManager.update(exchnages)
     }
   }
@@ -49,5 +49,13 @@ class OperationManager {
       exchanges.append(exchange)
     }
     return ExchangePairsWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: exchanges)
+  }
+  
+  func updateExchangesToListen(exchanges: ExchangesToListen) {
+    let dict = exchanges.exchanges.reduce(into: [ExchangeName:[CoinPair]]()) { (res, ex) in
+      res[ex.exchangeName] = ex.coinPairs
+    }
+    exchangeManager.startCollectData(exchangesWithPairs: dict)
+    updateWsUpdateInterval(newInterval: exchanges.interval)
   }
 }

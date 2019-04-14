@@ -31,14 +31,6 @@ import WebSocket
 import Foundation
 
 extension WebSocket {
-
-  
-//  func send(_ exchangesBooks: [ExchangesBooks]) {
-//    let encoder = JSONEncoder()
-//    guard let data = try? encoder.encode(exchangesBooks) else { return }
-//    guard let jsonText = String(data: data, encoding: .utf8) else { return }
-//    send(text: jsonText)
-//  }
   
   func sendConten<T: Content>(_ data: T) {
     let encoder = JSONEncoder()

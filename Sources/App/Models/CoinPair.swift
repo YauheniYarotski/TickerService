@@ -2,11 +2,12 @@ import FluentSQLite
 import Vapor
 
 struct CoinPair: Content, Hashable {
+  static let separator = "-"
   let firstAsset: String
   let secondAsset: String
   
   var symbol: String {
-    return "\(firstAsset)-\(secondAsset)"
+    return "\(firstAsset+CoinPair.separator)\(secondAsset)"
   }
   
   enum CodingKeys: String, CodingKey {
@@ -29,6 +30,17 @@ struct CoinPair: Content, Hashable {
   init(firstAsset: String, secondAsset: String) {
     self.firstAsset = firstAsset
     self.secondAsset = secondAsset
+  }
+  
+  init?(string: String) {
+    let string = string.uppercased()
+    let parts = string.components(separatedBy: CoinPair.separator)
+    if parts.count == 2 {
+      firstAsset = parts[0]
+      secondAsset = parts[1]
+    } else {
+      return nil
+    }
   }
   
 }
