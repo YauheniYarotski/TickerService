@@ -10,13 +10,13 @@ import Vapor
 
 enum ExchangeName: String, Content {
   case binance = "Binance"
-  case bitfinex = "Bitfinex"
+//  case bitfinex = "Bitfinex"
   case bitstamp = "Bitstamp"
   case coinbasePro = "CoinbasePro"
   case polonex = "Polonex"
 }
 
-
+extension ExchangeName: CaseIterable {}
 
 class ExchangesManager {
   
@@ -83,12 +83,17 @@ class ExchangesManager {
   }
   
   func startCollectData(exchangesWithPairs: [ExchangeName:[CoinPair]]) {
+    stopAllExchanges()
+  
     for exchangePair in exchangesWithPairs {
       switch exchangePair.key {
       case .binance:
         let binancePairs = exchangePair.value.compactMap({BinancePair.init(string: ($0.firstAsset+$0.secondAsset))})
         binanceManager.startListenTickers(pairs: binancePairs)
-      case .bitfinex, .bitstamp, .coinbasePro, .polonex: continue
+      case .coinbasePro:
+        let pairs = exchangePair.value.compactMap({CoinbasePair.init(string: ($0.firstAsset+CoinbasePair.separator+$0.secondAsset))})
+        coinbaseProManager.startListenTickers(pairs: pairs)
+      case .bitstamp, .polonex: continue
       }
     }
   }
@@ -98,5 +103,16 @@ class ExchangesManager {
   }
   func updatePairs(exchangeName: ExchangeName, pairs: [CoinPair]) {
     exchangesPairs[exchangeName] = pairs
+  }
+  
+  private func stopAllExchanges() {
+    for ex in ExchangeName.allCases {
+      switch ex {
+      case .binance: binanceManager.stopListenTickers()
+      case .bitstamp: bitstampManager.stopListenTickers()
+      case .coinbasePro: coinbaseProManager.stopListenTickers()
+      case .polonex: poloniexManager.stopListenTickers()
+      }
+    }
   }
 }

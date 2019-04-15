@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import WebSocket
 
-class CoinbaseProWs {
+class CoinbaseProWs: BaseWs {
   
   var tickerResponse: ((_ tickerResponse: CoinbaseProTickerResponse)->())?
   var infoResponse: ((_ coinbaseProInfoResponse: CoinbaseProInfoResponse)->())?
@@ -24,16 +24,11 @@ class CoinbaseProWs {
         return
     }
     
+    self.ws?.close(code: WebSocketErrorCode.normalClosure)
+    
     let _ = HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", on: wsClientWorker).do { (ws) in
+      self.ws = ws
       ws.send(jsonString)
-      
-      ws.onError { (ws, error) in
-        print("error from ws coinbasePro",error)
-      }
-      
-      ws.onCloseCode { (code) in
-        print("closing ws coinbasePro with code:",code)
-      }
       
       ws.onText { ws, text in
         guard  let jsonData = text.data(using: .utf8) else {

@@ -13,8 +13,6 @@ class BinanceManager: BaseTikerManager<BinancePair, BinanceCoin> {
   
   let ws = BinanceWs()
   
-  
-  
   override init() {
     super.init()
     ws.tickersResponseHandler = { (response: BinanceStreamTikerResponse) in
@@ -56,6 +54,10 @@ class BinanceManager: BaseTikerManager<BinancePair, BinanceCoin> {
   
   override func cooverForWsStartListenTickers(pairs: [BinancePair]) {
     ws.startListenTickers(pairs: pairs)
+  }
+  
+  override func stopListenTickers() {
+    ws.stopListenTickers()
   }
   
 }

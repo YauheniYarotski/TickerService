@@ -11,7 +11,7 @@ import Vapor
 
 class BitstampManager: BaseTikerManager<BitstampPair, BitstampCoin> {
   
-  let wsApi = BitstampWs()
+  let ws = BitstampWs()
   
   
   override func getPairsAndCoins() {
@@ -45,8 +45,8 @@ class BitstampManager: BaseTikerManager<BitstampPair, BitstampCoin> {
   private func startWs() {
     // btcusd, btceur, eurusd, xrpusd, xrpeur, xrpbtc, ltcusd, ltceur, ltcbtc, ethusd, etheur, ethbtc, bchusd, bcheur, bchbtc
     let pairs = ["btcusd", "xrpusd", "ltcusd", "ethusd"]
-    wsApi.startListenTickers(forPairs: pairs)
-    wsApi.tickerResponse = { response in
+    ws.startListenTickers(forPairs: pairs)
+    ws.tickerResponse = { response in
       let urlSymbol = response.symbol
       if let pair = BitstampPair(urlString: urlSymbol)  {
         let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
@@ -57,6 +57,10 @@ class BitstampManager: BaseTikerManager<BitstampPair, BitstampCoin> {
       }
     }
     
+  }
+  
+  override func stopListenTickers() {
+    ws.stopListenTickers()
   }
   
 }

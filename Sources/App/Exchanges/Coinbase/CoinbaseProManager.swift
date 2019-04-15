@@ -10,11 +10,11 @@ import Jobs
 
 class CoinbaseProManager: BaseTikerManager<CoinbasePair, CoinbaseCoin> {
   
-  let wsApi: CoinbaseProWs = CoinbaseProWs()
+  let ws: CoinbaseProWs = CoinbaseProWs()
   
   override init() {
     super.init()
-    wsApi.tickerResponse = { (response: CoinbaseProTickerResponse) in
+    ws.tickerResponse = { (response: CoinbaseProTickerResponse) in
       if let pair = CoinbasePair.init(string: response.product_id)  {
         let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
         let ticker = Ticker(tradeTime: response.time, pair: coinPair, price: response.price , quantity: -99)
@@ -48,6 +48,13 @@ class CoinbaseProManager: BaseTikerManager<CoinbasePair, CoinbaseCoin> {
     }, errorHandler:  {  error in
       print("Gor error for request: \(request)",error)
     })
+  }
+  
+  override func cooverForWsStartListenTickers(pairs: [CoinbasePair]) {
+    ws.startListenTickers(pairs: pairs)
+  }
+  override func stopListenTickers() {
+    ws.stopListenTickers()
   }
 }
 

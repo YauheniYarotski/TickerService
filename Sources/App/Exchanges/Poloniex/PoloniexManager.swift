@@ -10,7 +10,7 @@ import Jobs
 import Vapor
 
 class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
-  let wsApi = PoloniexWs()
+  let ws = PoloniexWs()
   var pairsIds: [Int:PoloniexPair]?
   var coinsIds: [Int:PoloniexCoin]?  //1,BTC_ATOM
   
@@ -58,8 +58,8 @@ class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
   
   private func startWs() {
     
-    wsApi.startListenTickers()
-    wsApi.tickerResponse = { response in
+    ws.startListenTickers()
+    ws.tickerResponse = { response in
       if let pair = self.pairsIds?[response.pairId]  {
               let coinPair = CoinPair.init(firstAsset: pair.secondAsset.rawValue, secondAsset: pair.firstAsset.rawValue)
         let ticker = Ticker(tradeTime: Int(Date().timeIntervalSince1970), pair: coinPair, price: response.price, quantity: -99)
@@ -71,6 +71,9 @@ class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
     
   }
   
+  override func stopListenTickers() {
+    ws.stopListenTickers()
+  }
 }
 
 

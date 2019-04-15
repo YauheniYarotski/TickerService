@@ -68,8 +68,8 @@ class BaseTikerManager<Pair:Hashable, Coin: Hashable> {
   
   func getPairsAndCoins() {}
   func cooverForWsStartListenTickers(pairs: [Pair]) {}
+  func stopListenTickers() {}
 }
-
 
 struct Ticker: Content {
   let tradeTime: Int

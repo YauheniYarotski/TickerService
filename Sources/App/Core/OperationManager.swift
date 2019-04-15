@@ -20,7 +20,7 @@ class OperationManager {
     self.agregator = Agregator(exchangeManager: exchangeManager)
     let coinPair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
     let coinPair2 = CoinPair(firstAsset: "BTC", secondAsset: "USD")
-    exchangeManager.startCollectData(exchangesWithPairs: [.binance:[coinPair,coinPair2]])
+    exchangeManager.startCollectData(exchangesWithPairs: [.binance:[coinPair,coinPair2],.coinbasePro:[coinPair,coinPair2]])
     
     let defaultInetval = 3
     self.wsJob = Jobs.add(interval: .seconds(Double(defaultInetval))) {

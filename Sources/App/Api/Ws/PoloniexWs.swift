@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import WebSocket
 
-class PoloniexWs {
+class PoloniexWs: BaseWs {
   
   var tickerResponse: ((_ response: PoloniexTickerResponse)->())?
   
@@ -32,7 +32,7 @@ class PoloniexWs {
     }
     
     ws.send(requestJsonData)
-    
+    self.ws = ws
     
     
     

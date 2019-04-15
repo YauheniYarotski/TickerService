@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import WebSocket
 
-class BitstampWs {
+class BitstampWs: BaseWs {
   
   var tickerResponse: ((_ response: BitstampTickerResponse)->())?
   
@@ -30,7 +30,7 @@ class BitstampWs {
           print("can't parse bitstamp json:", pair)
           return
       }
-      
+      self.ws = ws
       ws.send(bookRequestJsonData)
       
       

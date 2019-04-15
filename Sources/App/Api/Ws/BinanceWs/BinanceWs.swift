@@ -9,10 +9,9 @@ import Foundation
 import Vapor
 import WebSocket
 
-class BinanceWs {
+class BinanceWs: BaseWs {
   
   var tickersResponseHandler: ((_ response: BinanceStreamTikerResponse)->())?
-  var ws: WebSocket?
   
   func startListenTickers(pairs: [BinancePair]) {
     guard pairs.count > 0 else {
@@ -43,17 +42,11 @@ class BinanceWs {
     let _ = HTTPClient.webSocket(scheme: .wss, hostname: request.hostName, port: request.port, path: request.path, on: wsClientWorker).do { (ws) in
       self.ws = ws
       ws.onText(wsOnText)
-      ws.onCloseCode({ code in
-        print("ws closed with code:",code)
-      })
-      ws.onError({ (ws, error) in
-        print("Binance ws error with error:",error)
-      })
+      
+      
     }
     
   }
-  
-  
   
 }
 
