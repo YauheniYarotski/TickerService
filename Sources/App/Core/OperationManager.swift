@@ -24,7 +24,7 @@ class OperationManager {
     let bitstampPair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
     exchangeManager.startCollectData(exchangesWithPairs: [.binance:[binancePair],.coinbasePro:[coinbasePair],.poloniex:[poloniesPair], .bitstamp:[bitstampPair]])
     
-    let defaultInetval = 3
+    let defaultInetval = 10
     self.wsJob = Jobs.add(interval: .seconds(Double(defaultInetval))) {
       self.sendTickersToWs(defaultInetval)
     }

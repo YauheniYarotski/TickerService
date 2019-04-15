@@ -26,15 +26,10 @@ public func sockets(_ websockets: NIOWebSocketServer) {
     }
   }
   
-  websockets.get("tickers", Int.parameter) { ws, req in
-    if let interval = try? req.parameters.next(Int.self) {
-      ws.onText(onTextHandler)
-      print("client connected to WS with interval:", interval)
-      operationManager.updateWsUpdateInterval(newInterval: interval)
-      operationManager.sessionManager.add(listener: ws)
-    } else {
-      print("Can't connect ws")
-    }
+  websockets.get("tickers") { ws, req in
+    ws.onText(onTextHandler)
+    print("client connected to WS with interval")
+    operationManager.sessionManager.add(listener: ws)
   }
   
 }
