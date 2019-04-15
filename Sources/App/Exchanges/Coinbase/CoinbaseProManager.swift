@@ -8,19 +8,9 @@
 import Foundation
 import Jobs
 
-class CoinbaseProManager: BaseTikerManager {
+class CoinbaseProManager: BaseTikerManager<CoinbasePair, CoinbaseCoin> {
   
   let wsApi: CoinbaseProWs = CoinbaseProWs()
-  
-  var pairs: Set<CoinbasePair>? {
-    didSet {
-      if let pairs = pairs {
-        didGetPairs?(pairs)
-      }
-    }
-  } //BTC/ATOM
-  var coins: Set<CoinbaseCoin>? //BTC
-  var didGetPairs: ((_ pairs: Set<CoinbasePair>)->())?
   
   override init() {
     super.init()
@@ -36,28 +26,7 @@ class CoinbaseProManager: BaseTikerManager {
     
   }
   
-  
-  func startCollectData() {
-    
-    weak var job: Job? = Jobs.delay(by: .seconds(2), interval: .seconds(10)) {
-      if self.pairs == nil || self.coins == nil {
-        self.getPairsAndCoins()
-      }
-    }
-    //
-    Jobs.add(interval: .seconds(10)) {
-      if job != nil, let _ = self.pairs, let _ = self.coins {
-        job?.stop()
-        self.wsApi.start()
-      }
-    }
-    
-  }
-  
-  
-  
-  
-  private func getPairsAndCoins() {
+  override func getPairsAndCoins() {
     let request = RestRequest.init(hostName: "api.pro.coinbase.com", path: "/products/")
     
     GenericRest.sendRequestToGetArray(request: request, completion: { (response) in

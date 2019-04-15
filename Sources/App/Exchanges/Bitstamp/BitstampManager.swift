@@ -9,37 +9,12 @@ import Foundation
 import Jobs
 import Vapor
 
-class BitstampManager: BaseTikerManager {
+class BitstampManager: BaseTikerManager<BitstampPair, BitstampCoin> {
   
   let wsApi = BitstampWs()
-  var pairs: Set<BitstampPair>? {
-    didSet {
-      if let pairs = pairs {
-        didGetPairs?(pairs)
-      }
-    }
-  } //BTC/ATOM
-  var coins: Set<BitstampCoin>? //BTC
-  var didGetPairs: ((_ pairs: Set<BitstampPair>)->())?
   
-  func startCollectData() {
-    
-    weak var job: Job? = Jobs.delay(by: .seconds(2), interval: .seconds(10)) {
-      if self.pairs == nil || self.coins == nil {
-        self.getPairsAndCoins()
-      }
-    }
-    //
-    Jobs.add(interval: .seconds(10)) {
-      if job != nil, let _ = self.pairs, let _ = self.coins {
-        job?.stop()
-        self.startWs()
-      }
-    }
-    
-  }
   
-  private func getPairsAndCoins() {
+  override func getPairsAndCoins() {
     let request = RestRequest.init(hostName: "www.bitstamp.net", path: "/api/v2/trading-pairs-info/")
     
     GenericRest.sendRequestToGetArray(request: request, completion: { (response) in
@@ -61,6 +36,10 @@ class BitstampManager: BaseTikerManager {
     }, errorHandler:  {  error in
       print("Gor error for request: \(request)",error)
     })
+  }
+  
+  override func cooverForWsStartListenTickers(pairs: [BitstampPair]) {
+    startWs()
   }
   
   private func startWs() {

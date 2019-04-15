@@ -9,52 +9,27 @@ import Foundation
 import Jobs
 import Vapor
 
-class PoloniexManager: BaseTikerManager {
+class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
   let wsApi = PoloniexWs()
-  var pairs: [Int:PoloniexPair]? {
-    didSet {
-      if let pairs = pairs?.compactMap({$0.value}) {
-        didGetPairs?(pairs)
-      }
-    }
-  } //1,BTC_ATOM
-  var coins: [Int:PoloniexCoin]? //1:BTC
-  var didGetPairs: ((_ pairs: [PoloniexPair])->())?
+  var pairsIds: [Int:PoloniexPair]?
+  var coinsIds: [Int:PoloniexCoin]?  //1,BTC_ATOM
   
-  func startCollectData() {
-    
-    weak var job = Jobs.delay(by: .seconds(2), interval: .seconds(10)) {
-      if self.pairs == nil {
-        self.getPairs()
-      } else if self.coins == nil {
-        self.getCoins()
-      }
-    }
-    //
-    Jobs.add(interval: .seconds(5)) {
-      if job != nil, let _ = self.pairs, let _ = self.coins {
-        job?.stop()
-        self.startWs()
-      }
-    }
-    
-  }
-  
-  private func getPairs() {
+  override func getPairsAndCoins() {
     let request = RestRequest.init(hostName: "poloniex.com", path: "/public", queryParameters: ["command":"returnTicker"])
     
     GenericRest.sendRequest(request: request, completion: { (response) in
-      var pairs = [Int:PoloniexPair]()
+      var pairsIds = [Int:PoloniexPair]()
       for draftDictPair in response {
         if let dictPair = draftDictPair.value as? [String: Any],
           let id = dictPair["id"] as? Int,
           let pair = PoloniexPair(string: draftDictPair.key) {
-          pairs[id] = pair
+          pairsIds[id] = pair
         } else {
           print("Waring!: not all binance asstets updated:",draftDictPair.key)
         }
       }
-      self.pairs = pairs.count > 5 ? pairs : nil
+      self.pairsIds = pairsIds.count > 5 ? pairsIds : nil
+      self.pairs = pairsIds.count > 5 ? Set(pairsIds.compactMap({$0.value})) : nil
     }, errorHandler:  {  error in
       print("Gor error for request: \(request)",error)
     })
@@ -64,17 +39,18 @@ class PoloniexManager: BaseTikerManager {
     let request = RestRequest.init(hostName: "poloniex.com", path: "/public", queryParameters: ["command":"returnCurrencies"])
     
     GenericRest.sendRequest(request: request, completion: { (response) in
-      var coins = [Int:PoloniexCoin]()
+      var coinsIds = [Int:PoloniexCoin]()
       for draftDictCoin in response {
         if let dictCoin = draftDictCoin.value as? [String: Any],
           let id = dictCoin["id"] as? Int,
         let coin = PoloniexCoin(rawValue: draftDictCoin.key) {
-          coins[id] = coin
+          coinsIds[id] = coin
         } else {
           print("Waring!: not all poloniex asstets updated:",draftDictCoin.key)
         }
       }
-      self.coins = coins.count > 5 ? coins : nil
+      self.coinsIds = coinsIds.count > 5 ? coinsIds : nil
+      self.coins = coinsIds.count > 5 ? Set(coinsIds.compactMap({$0.value})) : nil
     }, errorHandler:  {  error in
       print("Gor error for request: \(request)",error)
     })
@@ -84,7 +60,7 @@ class PoloniexManager: BaseTikerManager {
     
     wsApi.startListenTickers()
     wsApi.tickerResponse = { response in
-      if let pair = self.pairs?[response.pairId]  {
+      if let pair = self.pairsIds?[response.pairId]  {
               let coinPair = CoinPair.init(firstAsset: pair.secondAsset.rawValue, secondAsset: pair.firstAsset.rawValue)
         let ticker = Ticker(tradeTime: Int(Date().timeIntervalSince1970), pair: coinPair, price: response.price, quantity: -99)
               self.updateTickers(ticker: ticker)

@@ -25,8 +25,11 @@ struct PoloniexPair {
       return nil
     }
   }
-  
-  
+}
+extension PoloniexPair: Hashable {
+  var hashValue: Int {
+    return (self.firstAsset.rawValue+self.secondAsset.rawValue).hashValue
+  }
 }
 
 

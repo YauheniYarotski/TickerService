@@ -9,19 +9,11 @@ import Foundation
 import Jobs
 import Vapor
 
-class BinanceManager: BaseTikerManager {
+class BinanceManager: BaseTikerManager<BinancePair, BinanceCoin> {
   
   let ws = BinanceWs()
   
-  var pairs: Set<BinancePair>? {
-    didSet {
-      if let pairs = pairs {
-        didGetPairs?(pairs)
-      }
-    }
-  } //BTC/ATOM
-  var coins: Set<BinanceCoin>? //BTC
-  var didGetPairs: ((_ pairs: Set<BinancePair>)->())?
+  
   
   override init() {
     super.init()
@@ -37,30 +29,9 @@ class BinanceManager: BaseTikerManager {
     }
   }
   
-  func startListenTickers(pairs: [BinancePair]) {
-    weak var job: Job?
-    if self.pairs == nil || self.coins == nil {
-      job = Jobs.delay(by: .seconds(2), interval: .seconds(7)) {
-        if self.pairs == nil || self.coins == nil {
-          self.getPairAndCoins()
-        }
-      }
-    }
-    
-    if job != nil {
-      Jobs.add(interval: .seconds(5)) {
-        if job != nil, let _ = self.pairs, let _ = self.coins {
-          job?.stop()
-          self.ws.startListenTickers(pairs: pairs)
-        }
-      }
-    } else {
-      self.ws.startListenTickers(pairs: pairs)
-    }
-    
-  }
   
-  private func getPairAndCoins() {
+  
+  override func getPairsAndCoins() {
     let infoRequest = RestRequest.init(hostName: "api.binance.com", path: "/api/v1/exchangeInfo")
     var pairs = Set<BinancePair>()
     var coins = Set<BinanceCoin>()
@@ -83,42 +54,9 @@ class BinanceManager: BaseTikerManager {
     })
   }
   
-}
-
-struct Ticker: Content {
-  let tradeTime: Int
-  let pair: CoinPair
-  let price: Double
-  let quantity: Double
-}
-
-
-
-
-
-
-class BaseTikerManager {
-  
-  var tickers: [CoinPair:[Ticker]] = [:] { //[Pair:[Time:Ticker]]
-    didSet {
-      tickerDidUpdate?(tickers)
-    }
+  override func cooverForWsStartListenTickers(pairs: [BinancePair]) {
+    ws.startListenTickers(pairs: pairs)
   }
-  var tickerDidUpdate: ((_ tickers: [CoinPair:[Ticker]])->())?
-  
-  func updateTickers(ticker: Ticker) {
-    //TODO: optimeze
-    var tickersForPair = tickers[ticker.pair] ?? []
-    
-    
-    if tickersForPair.count > 1200 {
-      tickersForPair = Array(tickersForPair.prefix(1000))
-    }
-    
-    tickersForPair.append(ticker)
-    tickers[ticker.pair] = tickersForPair
-  }
-  
   
 }
 
