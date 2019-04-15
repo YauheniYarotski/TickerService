@@ -10,7 +10,7 @@ struct BitstampPair {
     return "\(firstAsset.rawValue+PoloniexPair.separator)\(secondAsset.rawValue)"
   }
   var urlSymbol: String {
-    return "\(firstAsset.rawValue))\(secondAsset.rawValue)".lowercased()
+    return "\(firstAsset.rawValue)\(secondAsset.rawValue)".lowercased()
   }
   init(firstAsset: BitstampCoin, secondAsset: BitstampCoin) {
     self.firstAsset = firstAsset

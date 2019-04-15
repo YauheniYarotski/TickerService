@@ -13,7 +13,7 @@ enum ExchangeName: String, Content {
 //  case bitfinex = "Bitfinex"
   case bitstamp = "Bitstamp"
   case coinbasePro = "CoinbasePro"
-  case polonex = "Polonex"
+  case poloniex = "Poloniex"
 }
 
 extension ExchangeName: CaseIterable {}
@@ -71,13 +71,13 @@ class ExchangesManager {
     
     
     poloniexManager.tickerDidUpdate = {tickers in
-      self.updateTicker(exchangeName: .polonex, tickers: tickers)
+      self.updateTicker(exchangeName: .poloniex, tickers: tickers)
     }
     poloniexManager.didGetPairs = { poloniexPairs in
       let pairs = poloniexPairs.compactMap({ polonoexPair  in
         return CoinPair.init(firstAsset: polonoexPair.firstAsset.rawValue, secondAsset: polonoexPair.secondAsset.rawValue)
       }).sorted(by: {$0.symbol < $1.symbol})
-      self.updatePairs(exchangeName: .polonex, pairs: pairs)
+      self.updatePairs(exchangeName: .poloniex, pairs: pairs)
     }
 
   }
@@ -93,7 +93,12 @@ class ExchangesManager {
       case .coinbasePro:
         let pairs = exchangePair.value.compactMap({CoinbasePair.init(string: ($0.firstAsset+CoinbasePair.separator+$0.secondAsset))})
         coinbaseProManager.startListenTickers(pairs: pairs)
-      case .bitstamp, .polonex: continue
+      case .bitstamp:
+        let pairs = exchangePair.value.compactMap({BitstampPair.init(string: ($0.firstAsset+BitstampPair.separator+$0.secondAsset))})
+        bitstampManager.startListenTickers(pairs: pairs)
+      case .poloniex:
+        let pairs = exchangePair.value.compactMap({PoloniexPair.init(string: ($0.firstAsset+PoloniexPair.separator+$0.secondAsset))})
+        poloniexManager.startListenTickers(pairs: pairs)
       }
     }
   }
@@ -111,7 +116,7 @@ class ExchangesManager {
       case .binance: binanceManager.stopListenTickers()
       case .bitstamp: bitstampManager.stopListenTickers()
       case .coinbasePro: coinbaseProManager.stopListenTickers()
-      case .polonex: poloniexManager.stopListenTickers()
+      case .poloniex: poloniexManager.stopListenTickers()
       }
     }
   }

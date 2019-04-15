@@ -13,6 +13,20 @@ class BitstampManager: BaseTikerManager<BitstampPair, BitstampCoin> {
   
   let ws = BitstampWs()
   
+  override init() {
+    super.init()
+    ws.tickerResponse = { response in
+      let urlSymbol = response.symbol
+      if let pair = BitstampPair(urlString: urlSymbol)  {
+        let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
+        let ticker = Ticker(tradeTime: response.data.timestamp, pair: coinPair, price: response.data.price, quantity: response.data.amount)
+        self.updateTickers(ticker: ticker)
+      } else {
+        print("error pasing bitstamp symbol:",response.symbol)
+      }
+    }
+  }
+  
   
   override func getPairsAndCoins() {
     let request = RestRequest.init(hostName: "www.bitstamp.net", path: "/api/v2/trading-pairs-info/")
@@ -39,25 +53,10 @@ class BitstampManager: BaseTikerManager<BitstampPair, BitstampCoin> {
   }
   
   override func cooverForWsStartListenTickers(pairs: [BitstampPair]) {
-    startWs()
-  }
-  
-  private func startWs() {
-    // btcusd, btceur, eurusd, xrpusd, xrpeur, xrpbtc, ltcusd, ltceur, ltcbtc, ethusd, etheur, ethbtc, bchusd, bcheur, bchbtc
-    let pairs = ["btcusd", "xrpusd", "ltcusd", "ethusd"]
     ws.startListenTickers(forPairs: pairs)
-    ws.tickerResponse = { response in
-      let urlSymbol = response.symbol
-      if let pair = BitstampPair(urlString: urlSymbol)  {
-        let coinPair = CoinPair.init(firstAsset: pair.firstAsset.rawValue, secondAsset: pair.secondAsset.rawValue)
-        let ticker = Ticker(tradeTime: response.data.timestamp, pair: coinPair, price: response.data.price, quantity: response.data.amount)
-        self.updateTickers(ticker: ticker)
-      } else {
-        print("error pasing bitstamp symbol:",response.symbol)
-      }
-    }
     
   }
+
   
   override func stopListenTickers() {
     ws.stopListenTickers()

@@ -14,6 +14,19 @@ class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
   var pairsIds: [Int:PoloniexPair]?
   var coinsIds: [Int:PoloniexCoin]?  //1,BTC_ATOM
   
+  override init() {
+    super.init()
+    ws.tickerResponse = { response in
+      if let pair = self.pairsIds?[response.pairId]  {
+        let coinPair = CoinPair.init(firstAsset: pair.secondAsset.rawValue, secondAsset: pair.firstAsset.rawValue)
+        let ticker = Ticker(tradeTime: Int(Date().timeIntervalSince1970), pair: coinPair, price: response.price, quantity: -99)
+        self.updateTickers(ticker: ticker)
+      } else {
+        print("no pair with id for response:", response)
+      }
+    }
+  }
+  
   override func getPairsAndCoins() {
     let request = RestRequest.init(hostName: "poloniex.com", path: "/public", queryParameters: ["command":"returnTicker"])
     
@@ -33,6 +46,7 @@ class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
     }, errorHandler:  {  error in
       print("Gor error for request: \(request)",error)
     })
+    getCoins()
   }
   
   private func getCoins() {
@@ -56,19 +70,8 @@ class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
     })
   }
   
-  private func startWs() {
-    
+  override func cooverForWsStartListenTickers(pairs: [PoloniexPair]) {
     ws.startListenTickers()
-    ws.tickerResponse = { response in
-      if let pair = self.pairsIds?[response.pairId]  {
-              let coinPair = CoinPair.init(firstAsset: pair.secondAsset.rawValue, secondAsset: pair.firstAsset.rawValue)
-        let ticker = Ticker(tradeTime: Int(Date().timeIntervalSince1970), pair: coinPair, price: response.price, quantity: -99)
-              self.updateTickers(ticker: ticker)
-            } else {
-              print("no pair with id for response:", response)
-            }
-    }
-    
   }
   
   override func stopListenTickers() {

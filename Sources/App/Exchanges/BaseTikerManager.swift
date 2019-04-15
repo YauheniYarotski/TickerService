@@ -43,7 +43,7 @@ class BaseTikerManager<Pair:Hashable, Coin: Hashable> {
     tickers[ticker.pair] = tickersForPair
   }
   
-  func startListenTickers(pairs: [Pair]) {
+  final func startListenTickers(pairs: [Pair]) {
     weak var job: Job?
     if self.pairs == nil || self.coins == nil {
       job = Jobs.delay(by: .seconds(2), interval: .seconds(7)) {

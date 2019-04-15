@@ -13,48 +13,42 @@ class BitstampWs: BaseWs {
   
   var tickerResponse: ((_ response: BitstampTickerResponse)->())?
   
-  func startListenTickers(forPairs: [String]) {
+  func startListenTickers(forPairs: [BitstampPair]) {
         
-    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws.bitstamp.net", on: wsClientWorker).wait() else {
-      print("Bitstamp is nil")
-      return
-    }
-    
-    for pair in forPairs {
+    let _ = HTTPClient.webSocket(scheme: .wss, hostname: "ws.bitstamp.net", on: wsClientWorker).do { (ws) in
       
-      let bookRequest: [String : Any] = ["event":"bts:subscribe", "data":["channel": "live_trades_\(pair)"]]
-      guard let bookRequestJsonData = try?  JSONSerialization.data(
-        withJSONObject: bookRequest,
-        options: []
-        ) else {
-          print("can't parse bitstamp json:", pair)
+      for pair in forPairs {
+        let bookRequest: [String : Any] = ["event":"bts:subscribe", "data":["channel": "live_trades_\(pair.urlSymbol)"]]
+        guard let bookRequestJsonData = try?  JSONSerialization.data(
+          withJSONObject: bookRequest,
+          options: []
+          ) else {
+            print("can't parse bitstamp json:", pair)
+            return
+        }
+        self.ws = ws
+        ws.send(bookRequestJsonData)
+      }
+      
+      ws.onText { ws, text in
+        guard  let jsonData = text.data(using: .utf8) else {
+          print("Error with parsing bitstamp ws response")
           return
-      }
-      self.ws = ws
-      ws.send(bookRequestJsonData)
-      
-      
-    }
-    
-    
-    
-    ws.onText { ws, text in
-      //            print(text)
-      guard  let jsonData = text.data(using: .utf8) else {
-        print("Error with parsing bitstamp ws response")
-        return
-      }
-      if let tickerResponse: BitstampTickerResponse = try? JSONDecoder().decode(BitstampTickerResponse.self, from: jsonData) {
-        self.tickerResponse?(tickerResponse)
-      } else if let _: BitstampInfoResponse = try? JSONDecoder().decode(BitstampInfoResponse.self, from: jsonData)  {
-        //do nothing for now
-      }
-      else {
-        print("Error with parsing bitstamp ws response")
-        return
+        }
+        if let tickerResponse: BitstampTickerResponse = try? JSONDecoder().decode(BitstampTickerResponse.self, from: jsonData) {
+          self.tickerResponse?(tickerResponse)
+        } else if let _: BitstampInfoResponse = try? JSONDecoder().decode(BitstampInfoResponse.self, from: jsonData)  {
+          //do nothing for now
+        }
+        else {
+          print("Error with parsing bitstamp ws response")
+          return
+        }
       }
       
     }
+    
+    
     
   }
   
