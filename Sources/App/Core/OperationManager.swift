@@ -48,7 +48,7 @@ class OperationManager {
     
   }
   
-  func getExchanges() -> ExchangePairsWithTimeStamp {
+  func getAllExchangesWithPairs() -> ExchangePairsWithTimeStamp {
     var exchanges = [ExchangePairs]()
     let collection = exchangeManager.exchangesPairs
     for exchange in collection {

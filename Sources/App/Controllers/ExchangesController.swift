@@ -12,7 +12,7 @@ struct ExchangesController: RouteCollection {
     let usersRoute = router.grouped("api","exchanges")
 //    usersRoute.get(use: getAllHandler)
     usersRoute.get { req in
-      return operationManager.getExchanges()
+      return operationManager.getAllExchangesWithPairs()
     }
   }
   
