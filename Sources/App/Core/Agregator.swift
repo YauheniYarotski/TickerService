@@ -11,16 +11,13 @@ import Vapor
 
 class Agregator {
   
-  let exchangeManager: ExchangesManager
-  
-  init(exchangeManager: ExchangesManager) {
-    self.exchangeManager = exchangeManager
-  }
+  var tickersSourceHandler: (()-> [ExchangeName:[CoinPair:[Ticker]]])?
   
   func getTickers(since: Int) -> [ExchangeTickers] {
     var exchanges = [ExchangeTickers]()
     
-    for exchange in self.exchangeManager.exchangesTickers {
+    guard let sourceTickers = tickersSourceHandler?() else {return exchanges}
+    for exchange in sourceTickers {
       var tikers = [WsTicker]()
       
       for pair in exchange.value {

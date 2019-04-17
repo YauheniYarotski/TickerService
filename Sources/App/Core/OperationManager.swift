@@ -12,12 +12,15 @@ import Jobs
 class OperationManager {
   let exchangeManager = ExchangesManager()
   let sessionManager = TrackingSessionManager()
-  var agregator: Agregator?
+  let agregator = Agregator()
   weak var wsJob: Job?
+  
+  init() {
+    agregator.tickersSourceHandler = {self.exchangeManager.exchangesTickers}
+  }
   
   func start(_ app: Application) {
     
-    self.agregator = Agregator(exchangeManager: exchangeManager)
     let binancePair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
     let coinbasePair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
     let poloniesPair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
@@ -38,10 +41,11 @@ class OperationManager {
   }
   
   private func sendTickersToWs(_ forInterval: Int) {
-    if let agregator = agregator {
-      let exchnages = ExchangeTickersWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: agregator.getTickers(since: Int(Date().timeIntervalSince1970) - forInterval))
-      self.sessionManager.update(exchnages)
-    }
+    let exchnages = ExchangeTickersWithTimeStamp.init(
+      timeStamp: UInt(Date().timeIntervalSince1970),
+      exchanges: agregator.getTickers(since: Int(Date().timeIntervalSince1970) - forInterval))
+    self.sessionManager.update(exchnages)
+    
   }
   
   func getExchanges() -> ExchangePairsWithTimeStamp {
