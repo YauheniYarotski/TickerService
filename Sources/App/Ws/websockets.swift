@@ -8,7 +8,7 @@ public func sockets(_ websockets: NIOWebSocketServer) {
   
   let onTextHandler = { (ws: WebSocket, text: String) in
     if let jsonData = text.data(using: .utf8), let exchangesToListen = try? JSONDecoder().decode(ExchangesToListen.self, from: jsonData) {
-      operationManager.updateExchangesToListen(exchanges: exchangesToListen)
+      operationManager.updateExchangesToListen(exchangesToListen: exchangesToListen)
       ws.send("Did get")
     } else {
       let errorText = "Can't parse JSON to \(ExchangesToListen.self) from: \(text)"

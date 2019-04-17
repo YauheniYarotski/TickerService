@@ -31,10 +31,10 @@ class BinanceRest {
           print("error parsing binance json:", response.body)
         }
       }).catch({ (error) in
-        print("err:",error)
+        print("error from \(self):",error)
       })
       }.catch { (error) in
-        print("err:",error)
+        print("error2 from \(self):",error)
     }
     
     

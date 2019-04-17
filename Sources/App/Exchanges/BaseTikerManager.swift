@@ -36,7 +36,7 @@ class BaseTikerManager<Pair:Hashable, Coin: Hashable> {
     
     
     if tickersForPair.count > 1200 {
-      tickersForPair = Array(tickersForPair.prefix(1000))
+      tickersForPair = Array(tickersForPair.suffix(1000))
     }
     
     tickersForPair.append(ticker)

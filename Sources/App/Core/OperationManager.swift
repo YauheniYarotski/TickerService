@@ -20,33 +20,35 @@ class OperationManager {
   }
   
   func start(_ app: Application) {
-    
-    let binancePair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
-    let coinbasePair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
-    let poloniesPair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
-    let bitstampPair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
-    exchangeManager.startCollectData(exchangesWithPairs: [.binance:[binancePair],.coinbasePro:[coinbasePair],.poloniex:[poloniesPair], .bitstamp:[bitstampPair]])
-    
-    let defaultInetval = 10
-    self.wsJob = Jobs.add(interval: .seconds(Double(defaultInetval))) {
-      self.sendTickersToWs(defaultInetval)
-    }
+    self.startSendTickers(with: 5, requestedExchanges: [:])
   }
   
-  func updateWsUpdateInterval(newInterval: Int) {
+  private func startSendTickers(with interval: Int, requestedExchanges: [ExchangeName:[CoinPair]]) {
+    var requestedExchanges = requestedExchanges
+    if requestedExchanges.isEmpty {
+      let binancePair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
+      let coinbasePair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
+      let poloniesPair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
+      let bitstampPair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
+      requestedExchanges = [.binance:[binancePair],.coinbasePro:[coinbasePair],.poloniex:[poloniesPair], .bitstamp:[bitstampPair]]
+    }
+    exchangeManager.startCollectData(exchangesWithPairs: requestedExchanges)
+    
     wsJob?.stop()
-    self.wsJob = Jobs.add(interval: .seconds(Double(newInterval))) {
-      self.sendTickersToWs(newInterval)
+    self.wsJob = Jobs.add(interval: .seconds(Double(interval))) {
+      
+      if let exchanesToSend = self.agregator.getTickers(since: Int(Date().timeIntervalSince1970) - interval, for: requestedExchanges) {
+        let exchanesToSendWithTimeStamp = ExchangeTickersWithTimeStamp(
+          timeStamp: UInt(Date().timeIntervalSince1970),
+          exchanges:exchanesToSend)
+        self.sessionManager.update(exchanesToSendWithTimeStamp)
+      }
+      
     }
-  }
-  
-  private func sendTickersToWs(_ forInterval: Int) {
-    let exchnages = ExchangeTickersWithTimeStamp.init(
-      timeStamp: UInt(Date().timeIntervalSince1970),
-      exchanges: agregator.getTickers(since: Int(Date().timeIntervalSince1970) - forInterval))
-    self.sessionManager.update(exchnages)
     
   }
+  
+  
   
   func getAllExchangesWithPairs() -> ExchangePairsWithTimeStamp {
     var exchanges = [ExchangePairs]()
@@ -58,11 +60,10 @@ class OperationManager {
     return ExchangePairsWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: exchanges)
   }
   
-  func updateExchangesToListen(exchanges: ExchangesToListen) {
-    let dict = exchanges.exchanges.reduce(into: [ExchangeName:[CoinPair]]()) { (res, ex) in
+  func updateExchangesToListen(exchangesToListen: ExchangesToListen) {
+    let dict = exchangesToListen.exchanges.reduce(into: [ExchangeName:[CoinPair]]()) { (res, ex) in
       res[ex.exchangeName] = ex.coinPairs
     }
-    exchangeManager.startCollectData(exchangesWithPairs: dict)
-    updateWsUpdateInterval(newInterval: exchanges.interval)
+    startSendTickers(with: exchangesToListen.interval, requestedExchanges: dict)
   }
 }

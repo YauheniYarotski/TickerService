@@ -13,26 +13,27 @@ class Agregator {
   
   var tickersSourceHandler: (()-> [ExchangeName:[CoinPair:[Ticker]]])?
   
-  func getTickers(since: Int) -> [ExchangeTickers] {
-    var exchanges = [ExchangeTickers]()
+  func getTickers(since: Int, for requestedExchangesAndPairs: [ExchangeName:[CoinPair]]) -> [ExchangeTickers]? {
+    var resultExchanges = [ExchangeTickers]()
     
-    guard let sourceTickers = tickersSourceHandler?() else {return exchanges}
-    for exchange in sourceTickers {
-      var tikers = [WsTicker]()
-      
-      for pair in exchange.value {
-        if let ticker = pair.value.filter({$0.tradeTime >= since}).last {
-          let wsTicker = WsTicker.init(pair: pair.key.symbol, price: ticker.price, tradeTime: ticker.tradeTime)
-          tikers.append(wsTicker)
+    guard let sourceExchanges = tickersSourceHandler?() else {return nil}
+    
+    for requestedExchange in requestedExchangesAndPairs {
+      if let sourcePairs = sourceExchanges[requestedExchange.key] {
+        var tikers = [WsTicker]()
+        for requestedPair in requestedExchange.value {
+          if let tickers = sourcePairs[requestedPair], let ticker = tickers.filter({$0.tradeTime >= since}).last {
+            let wsTicker = WsTicker(pair: requestedPair.symbol, price: ticker.price, tradeTime: ticker.tradeTime)
+            tikers.append(wsTicker)
+          }
+        }
+        if tikers.count > 0 {
+          resultExchanges.append(ExchangeTickers(exchangeName: requestedExchange.key, tickers: tikers))
         }
       }
-      if tikers.count > 0 {
-        let exchangesTickers = ExchangeTickers.init(exchangeName: exchange.key, tickers: tikers)
-        exchanges.append(exchangesTickers)
-      }
-      
     }
-    return exchanges
+    
+    return resultExchanges.isEmpty ? nil : resultExchanges
   }
   
   //  func getData(granulation: Double) -> [ExchangesBooks] {

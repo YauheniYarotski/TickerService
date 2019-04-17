@@ -44,6 +44,8 @@ class BinanceWs: BaseWs {
       ws.onText(wsOnText)
       
       
+      }.catch { (error) in
+        print("\(self), error:",error)
     }
     
   }
