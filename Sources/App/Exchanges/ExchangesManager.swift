@@ -14,6 +14,16 @@ enum ExchangeName: String, Content {
   case bitstamp = "Bitstamp"
   case coinbasePro = "CoinbasePro"
   case poloniex = "Poloniex"
+  
+//  init(from decoder: Decoder) throws {
+//    let label = try decoder.singleValueContainer().decode(String.self)
+//    switch label {
+//    case "Binance": self = .binance
+//    case "Bitstamp": self = .bitstamp
+//    default: self = .poloniex
+//      // default: self = .other(label)
+//    }
+//  }
 }
 
 extension ExchangeName: CaseIterable {}
