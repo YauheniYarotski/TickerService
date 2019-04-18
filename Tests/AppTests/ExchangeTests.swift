@@ -6,6 +6,10 @@ import XCTest
 
 final class ExchangeTests: XCTestCase {
   
+  static let __allTests = [
+    ("testPairsCanBeRetrievedFromAPI", testPairsCanBeRetrievedFromAPI)
+  ]
+  
   //  let usersName = "Alice"
   //  let usersUsername = "alicea"
   let exchangesURI = "/api/exchanges/"
