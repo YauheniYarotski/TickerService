@@ -46,6 +46,8 @@ class BitstampWs: BaseWs {
         }
       }
       
+      }.catch { (error) in
+        print("\(self) send error:",error)
     }
     
     
