@@ -60,7 +60,7 @@ extension Application {
     _ = try self.sendRequest(to: path, method: method, headers: headers,
                              body: data)
   }
-
+  
   // 1
   func getResponse<C,T>(to path: String, method: HTTPMethod = .GET,
                         headers: HTTPHeaders = .init(), data: C? = nil,
@@ -69,8 +69,7 @@ extension Application {
     let response = try self.sendRequest(to: path, method: method,
                                         headers: headers, body: data)
     // 3
-    let b = try response.content.decode(type).wait()
-    return b
+    return try response.content.decode(type).wait()
   }
   
   // 4
@@ -82,6 +81,12 @@ extension Application {
     // 6
     return try self.getResponse(to: path, method: method, headers: headers,
                                 data: emptyContent, decodeTo: type)
+  }
+  func createWs() -> EventLoopFuture<WebSocket> {
+    let responder = try! self.make(WebSocketClient.self)
+    let request = HTTPRequest(url: URL(string: "ws://127.0.0.1:8080/tickers/")!)
+    let wrappedRequest = Request(http: request, using: self)
+    return responder.webSocketConnect(wrappedRequest)
   }
 
 
