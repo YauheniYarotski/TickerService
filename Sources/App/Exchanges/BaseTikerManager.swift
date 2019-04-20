@@ -11,6 +11,8 @@ import Jobs
 
 class BaseTikerManager<Pair:Hashable, Coin: Hashable> {
   
+  let serialQueue = DispatchQueue.init( label: "queue")
+  
   
   var pairs: Set<Pair>? {
     didSet {
@@ -31,16 +33,19 @@ class BaseTikerManager<Pair:Hashable, Coin: Hashable> {
   var tickerDidUpdate: ((_ tickers: [CoinPair:[Ticker]])->())?
   
   func updateTickers(ticker: Ticker) {
-    //TODO: optimeze
-    var tickersForPair = tickers[ticker.pair] ?? []
-    
-    
-    if tickersForPair.count > 1200 {
-      tickersForPair = Array(tickersForPair.suffix(1000))
+    serialQueue.async {
+      //done here for optimize
+      let count = self.tickers[ticker.pair]?.count ?? 0
+      if count > 0 {
+        self.tickers[ticker.pair]!.append(ticker)
+      } else {
+        self.tickers[ticker.pair] = [ticker]
+      }
+      //TODO: for optimization can be moved to seperate thread and for some time remove it
+      if count > 1200 {
+        self.tickers[ticker.pair]!.removeFirst(200)
+      }
     }
-    
-    tickersForPair.append(ticker)
-    tickers[ticker.pair] = tickersForPair
   }
   
   final func startListenTickers(pairs: [Pair]) {
