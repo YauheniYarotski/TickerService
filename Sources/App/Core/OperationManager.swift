@@ -28,7 +28,7 @@ class OperationManager {
     if requestedExchanges.isEmpty {
       let binancePair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
       let coinbasePair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
-      let poloniesPair = CoinPair(firstAsset: "BTC", secondAsset: "USDT")
+      let poloniesPair = CoinPair(firstAsset: "USDT", secondAsset: "BTC")
       let bitstampPair = CoinPair(firstAsset: "BTC", secondAsset: "USD")
       requestedExchanges = [.binance:[binancePair],.coinbasePro:[coinbasePair],.poloniex:[poloniesPair], .bitstamp:[bitstampPair]]
     }
