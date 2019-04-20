@@ -23,7 +23,7 @@ struct ExchangesController: RouteCollection {
 }
 
 struct ExchangePairsWithTimeStamp: Content {
-  let timeStamp: UInt
+  let timeStamp: Int
   let exchanges: [ExchangePairs]
 }
 

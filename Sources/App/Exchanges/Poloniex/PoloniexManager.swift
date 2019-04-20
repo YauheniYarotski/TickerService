@@ -19,7 +19,7 @@ class PoloniexManager: BaseTikerManager<PoloniexPair, PoloniexCoin> {
     ws.tickerResponse = { response in
       if let pair = self.pairsIds?[response.pairId]  {
         let coinPair = CoinPair.init(firstAsset: pair.secondAsset.rawValue, secondAsset: pair.firstAsset.rawValue)
-        let ticker = Ticker(tradeTime: Int(Date().timeIntervalSince1970), pair: coinPair, price: response.price, quantity: -99)
+        let ticker = Ticker(tradeTime: response.time, pair: coinPair, price: response.price, quantity: -99)
         self.updateTickers(ticker: ticker)
       } else {
         print("no pair with id for response:", response)

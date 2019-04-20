@@ -125,7 +125,6 @@ struct CoinbaseProBookChanges: Content {
 
 struct CoinbaseProTickerResponse: Content {
   let type: String
-  let sequence: Int
   let product_id: String
   let price: Double
   let time: Int = Int(Date().timeIntervalSince1970)
@@ -133,7 +132,6 @@ struct CoinbaseProTickerResponse: Content {
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     type = try container.decode(String.self, forKey: .type)
-    sequence = try container.decode(Int.self, forKey: .sequence)
     product_id = try container.decode(String.self, forKey: .product_id)
     price = Double(try container.decode(String.self, forKey: .price))!
 //    time = try container.decode(String.self, forKey: .time)

@@ -15,7 +15,7 @@ struct BookForPair: Content {
 }
 
 struct ExchangeTickersWithTimeStamp: Content {
-  let timeStamp: UInt
+  let timeStamp: Int
   let exchanges: [ExchangeTickers]
 }
 

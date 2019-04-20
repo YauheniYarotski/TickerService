@@ -1,11 +1,10 @@
-import FluentSQLite
 import Vapor
 import Leaf
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
     // Register providers first
-    try services.register(FluentSQLiteProvider())
+//    try services.register(FluentSQLiteProvider())
   
   try services.register(LeafProvider())
   config.prefer(LeafRenderer.self, for: ViewRenderer.self)

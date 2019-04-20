@@ -39,7 +39,7 @@ class OperationManager {
       
       if let exchanesToSend = self.agregator.getTickers(since: Int(Date().timeIntervalSince1970) - interval, for: requestedExchanges) {
         let exchanesToSendWithTimeStamp = ExchangeTickersWithTimeStamp(
-          timeStamp: UInt(Date().timeIntervalSince1970),
+          timeStamp: Int(Date().timeIntervalSince1970),
           exchanges:exchanesToSend)
         self.sessionManager.update(exchanesToSendWithTimeStamp)
       }
@@ -57,7 +57,7 @@ class OperationManager {
       let exchange = ExchangePairs.init(exchangeName: exchange.key, pairs: exchange.value.compactMap({$0.symbol}))
       exchanges.append(exchange)
     }
-    return ExchangePairsWithTimeStamp.init(timeStamp: UInt(Date().timeIntervalSince1970), exchanges: exchanges)
+    return ExchangePairsWithTimeStamp.init(timeStamp: Int(Date().timeIntervalSince1970), exchanges: exchanges)
   }
   
   func updateExchangesToListen(exchangesToListen: ExchangesToListen) {

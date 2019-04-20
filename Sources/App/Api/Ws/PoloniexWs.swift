@@ -14,6 +14,7 @@ class PoloniexWs: BaseWs {
   var tickerResponse: ((_ response: PoloniexTickerResponse)->())?
   
   func startListenTickers() {
+    self.ws?.close(code: WebSocketErrorCode.normalClosure)
     //polinex ws api listen all tickers, can't chose:  https://docs.poloniex.com/?shell#ticker-data
     let _ = HTTPClient.webSocket(scheme: .wss, hostname: "api2.poloniex.com", on: wsClientWorker).do({ (ws) in
       
@@ -81,4 +82,5 @@ class PoloniexWs: BaseWs {
 struct PoloniexTickerResponse {
   let pairId: Int
   let price: Double
+  let time: Int = Int(Date().timeIntervalSince1970)
 }

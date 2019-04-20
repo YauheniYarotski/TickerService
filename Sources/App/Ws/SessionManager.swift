@@ -28,7 +28,7 @@ final class TrackingSessionManager {
   func add(listener: WebSocket) {
     booksSessions.append(element: listener)
     //as used weak reference, don't need to remove, but lets rep the from weak
-    listener.onClose.always { [weak self, weak listener] in
+    listener.onClose.always { [weak self] in
       self?.booksSessions.reap()
 //      guard let listener = listener else { return }
 //      self?.remove(listener: listener)

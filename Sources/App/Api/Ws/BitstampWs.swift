@@ -14,9 +14,9 @@ class BitstampWs: BaseWs {
   var tickerResponse: ((_ response: BitstampTickerResponse)->())?
   
   func startListenTickers(forPairs: [BitstampPair]) {
-        
+    self.ws?.close(code: WebSocketErrorCode.normalClosure)
     let _ = HTTPClient.webSocket(scheme: .wss, hostname: "ws.bitstamp.net", on: wsClientWorker).do { (ws) in
-      
+      self.ws = ws
       for pair in forPairs {
         let bookRequest: [String : Any] = ["event":"bts:subscribe", "data":["channel": "live_trades_\(pair.urlSymbol)"]]
         guard let bookRequestJsonData = try?  JSONSerialization.data(
@@ -26,7 +26,6 @@ class BitstampWs: BaseWs {
             print("can't parse bitstamp json:", pair)
             return
         }
-        self.ws = ws
         ws.send(bookRequestJsonData)
       }
       
