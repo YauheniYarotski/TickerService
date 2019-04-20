@@ -91,7 +91,7 @@ class ExchangesManager {
     }
     poloniexManager.didGetPairs = { poloniexPairs in
       let pairs = poloniexPairs.compactMap({ polonoexPair  in
-        return CoinPair.init(firstAsset: polonoexPair.firstAsset.rawValue, secondAsset: polonoexPair.secondAsset.rawValue)
+        return CoinPair.init(firstAsset: polonoexPair.secondAsset.rawValue, secondAsset: polonoexPair.firstAsset.rawValue)
       }).sorted(by: {$0.symbol < $1.symbol})
       self.updatePairs(exchangeName: .poloniex, pairs: pairs)
     }
