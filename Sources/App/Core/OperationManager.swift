@@ -36,10 +36,10 @@ class OperationManager {
     
     wsJob?.stop()
     self.wsJob = Jobs.add(interval: .seconds(Double(interval))) {
-      
-      if let exchanesToSend = self.agregator.getTickers(since: Int(Date().timeIntervalSince1970) - interval, for: requestedExchanges) {
+      let now = Int(Date().timeIntervalSince1970)
+      if let exchanesToSend = self.agregator.getTickers(since: now - interval, for: requestedExchanges) {
         let exchanesToSendWithTimeStamp = ExchangeTickersWithTimeStamp(
-          timeStamp: Int(Date().timeIntervalSince1970),
+          timeStamp: now,
           exchanges:exchanesToSend)
         self.sessionManager.update(exchanesToSendWithTimeStamp)
       }
