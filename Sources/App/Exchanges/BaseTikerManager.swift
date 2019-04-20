@@ -11,7 +11,11 @@ import Jobs
 
 class BaseTikerManager<Pair:Hashable, Coin: Hashable> {
   
-  let serialQueue = DispatchQueue.init( label: "queue")
+  static var typeName: String {
+    return String(describing: self)
+  }
+  
+  let serialQueue = DispatchQueue.init( label: "queue \(typeName)")
   
   
   var pairs: Set<Pair>? {

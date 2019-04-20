@@ -16,7 +16,7 @@ class OperationManager {
   weak var wsJob: Job?
   
   init() {
-    agregator.tickersSourceHandler = {self.exchangeManager.exchangesTickers}
+    agregator.tickersSourceHandler = {self.exchangeManager.getTickers()}
   }
   
   func start(_ app: Application) {

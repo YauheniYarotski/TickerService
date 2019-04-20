@@ -10,44 +10,50 @@ import Vapor
 
 enum ExchangeName: String, Content {
   case binance = "Binance"
-//  case bitfinex = "Bitfinex"
+  //  case bitfinex = "Bitfinex"
   case bitstamp = "Bitstamp"
   case coinbasePro = "CoinbasePro"
   case poloniex = "Poloniex"
   
-//  init(from decoder: Decoder) throws {
-//    let label = try decoder.singleValueContainer().decode(String.self)
-//    switch label {
-//    case "Binance": self = .binance
-//    case "Bitstamp": self = .bitstamp
-//    default: self = .poloniex
-//      // default: self = .other(label)
-//    }
-//  }
+  //  init(from decoder: Decoder) throws {
+  //    let label = try decoder.singleValueContainer().decode(String.self)
+  //    switch label {
+  //    case "Binance": self = .binance
+  //    case "Bitstamp": self = .bitstamp
+  //    default: self = .poloniex
+  //      // default: self = .other(label)
+  //    }
+  //  }
 }
 
 extension ExchangeName: CaseIterable {}
 
 class ExchangesManager {
   
+  static var typeName: String {
+    return String(describing: self)
+  }
+  
+  let serialQueue = DispatchQueue.init( label: "queue \(typeName)")
+  
   let binanceManager = BinanceManager()
   let bitstampManager = BitstampManager()
   let coinbaseProManager = CoinbaseProManager()
   let poloniexManager = PoloniexManager()
   
-  var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]()
+  private var exchangesTickers = [ExchangeName:[CoinPair:[Ticker]]]()
   var exchangesPairs = [ExchangeName:[CoinPair]]()
-//  var exchangesPairsToListen = [ExchangeName:[CoinPair]]() {
-//    didSet {
-//      self.startCollectData(exchangesWithPairs: exchangesPairsToListen)
-//    }
-//  }
+  //  var exchangesPairsToListen = [ExchangeName:[CoinPair]]() {
+  //    didSet {
+  //      self.startCollectData(exchangesWithPairs: exchangesPairsToListen)
+  //    }
+  //  }
   
   init() {
-
+    
     
     binanceManager.tickerDidUpdate = { tickers in
-      self.updateTicker(exchangeName: .binance, tickers: tickers)
+      self.updateTickers(exchangeName: .binance, tickers: tickers)
     }
     
     binanceManager.didGetPairs = { pairs in
@@ -58,8 +64,8 @@ class ExchangesManager {
     }
     
     coinbaseProManager.tickerDidUpdate = { tickers in
-            self.updateTicker(exchangeName: .coinbasePro, tickers: tickers)
-          }
+      self.updateTickers(exchangeName: .coinbasePro, tickers: tickers)
+    }
     
     coinbaseProManager.didGetPairs = { pairs in
       let pairs = pairs.compactMap({ pair  in
@@ -69,7 +75,7 @@ class ExchangesManager {
     }
     
     bitstampManager.tickerDidUpdate = {tickers in
-      self.updateTicker(exchangeName: .bitstamp, tickers: tickers)
+      self.updateTickers(exchangeName: .bitstamp, tickers: tickers)
     }
     
     bitstampManager.didGetPairs = { pairs in
@@ -81,7 +87,7 @@ class ExchangesManager {
     
     
     poloniexManager.tickerDidUpdate = {tickers in
-      self.updateTicker(exchangeName: .poloniex, tickers: tickers)
+      self.updateTickers(exchangeName: .poloniex, tickers: tickers)
     }
     poloniexManager.didGetPairs = { poloniexPairs in
       let pairs = poloniexPairs.compactMap({ polonoexPair  in
@@ -89,12 +95,12 @@ class ExchangesManager {
       }).sorted(by: {$0.symbol < $1.symbol})
       self.updatePairs(exchangeName: .poloniex, pairs: pairs)
     }
-
+    
   }
   
   func startCollectData(exchangesWithPairs: [ExchangeName:[CoinPair]]) {
     stopAllExchanges()
-  
+    
     for exchangePair in exchangesWithPairs {
       switch exchangePair.key {
       case .binance:
@@ -113,9 +119,20 @@ class ExchangesManager {
     }
   }
   
-  func updateTicker(exchangeName: ExchangeName, tickers: [CoinPair:[Ticker]]) {
-    exchangesTickers[exchangeName] = tickers
+  func updateTickers(exchangeName: ExchangeName, tickers: [CoinPair:[Ticker]]) {
+    serialQueue.async {
+      self.exchangesTickers[exchangeName] = tickers
+    }
   }
+  
+  func getTickers() -> [ExchangeName:[CoinPair:[Ticker]]] {
+    var copy: [ExchangeName:[CoinPair:[Ticker]]]!
+    serialQueue.sync {
+      copy = self.exchangesTickers
+    }
+    return copy
+  }
+  
   func updatePairs(exchangeName: ExchangeName, pairs: [CoinPair]) {
     exchangesPairs[exchangeName] = pairs
   }
