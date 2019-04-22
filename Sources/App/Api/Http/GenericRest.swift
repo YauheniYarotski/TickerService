@@ -31,6 +31,7 @@ class GenericRest {
     
     var urlComponents = URLComponents()
     urlComponents.path = request.path
+    urlComponents.queryItems = [URLQueryItem]()
     for queryParameter in request.queryParameters ?? [:] {
       let queryItem = URLQueryItem(name: queryParameter.key, value: queryParameter.value)
       urlComponents.queryItems?.append(queryItem)
