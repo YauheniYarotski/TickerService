@@ -1,4 +1,3 @@
-import FluentSQLite
 import Vapor
 
 struct PoloniexPair {
